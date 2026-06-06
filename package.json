@@ -1,0 +1,46 @@
+{
+  "name": "angular-energy-app",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "download:all": "node --env-file .env ./data-scripts/download-all.js",
+    "format:arrays": "node --env-file .env ./data-scripts/format-array-data.js",
+    "download:elektriciteit": "node --env-file .env ./data-scripts/download-elektriciteit.js",
+    "download:gas": "node --env-file .env ./data-scripts/download-gas.js",
+    "download:solar": "node --env-file .env ./data-scripts/download-solar.js",
+    "download:temperature": "node --env-file .env ./data-scripts/download-temperature.js",
+    "download:transport": "node --env-file .env ./data-scripts/download-transport.js",
+    "download:windland": "node --env-file .env ./data-scripts/download-windland.js",
+    "download:windzee": "node --env-file .env ./data-scripts/download-windzee.js"
+  },
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "axios": "^1.15.2",
+    "date-fns": "^4.1.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "uplot": "^1.6.32",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.8",
+    "@angular/cli": "^21.2.8",
+    "@angular/compiler-cli": "^21.2.0",
+    "@tailwindcss/postcss": "^4.3.0",
+    "postcss": "^8.5.15",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~5.9.2"
+  }
+}

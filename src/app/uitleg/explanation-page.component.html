@@ -1,0 +1,194 @@
+<section class="space-y-4" aria-label="Uitleg en aannames">
+  <header class="py-6">
+    <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">Modeluitleg</p>
+    <h2 class="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">Aannames en onderbouwing</h2>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+      Deze pagina verzamelt de belangrijkste aannames achter opwek, balans, kosten en waterstof.
+      Elke aanname toont formule, bron, impact en kritische noot, zodat discussie over optimisme/pessimisme transparant wordt.
+    </p>
+  </header>
+
+  <section class="bg-amber-50 py-5 dark:bg-amber-950/20" aria-label="Beperkingen van het model">
+    <h3 class="text-sm font-bold text-amber-800 dark:text-amber-300">Belangrijk</h3>
+    <p class="mt-1 text-sm text-amber-700 dark:text-amber-400">
+      Dit model is bedoeld voor scenariodenken en orde-grootte, niet als exacte marktsimulatie of investeringsadvies.
+      Gebruik uitkomsten met onzekerheidsmarges en check gevoelige aannames expliciet.
+    </p>
+  </section>
+
+  <section class="py-8 border-t border-slate-200 dark:border-slate-800" aria-label="Global picture van het model">
+    <header class="mb-4">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Global picture</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400">Eerst het totaalbeeld, daarna pas detailaannames en FAQ.</p>
+    </header>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (item of globalPictureItems; track trackByGlobalPictureId($index, item)) {
+        <article class="py-2">
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ item.title }}</h4>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ item.summary }}</p>
+          <p class="mt-2 text-xs text-slate-500 dark:text-slate-400"><strong>Waarom dit telt:</strong> {{ item.whyItMatters }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="py-8 border-t border-slate-200 dark:border-slate-800" aria-label="Veelgestelde vragen over aannames">
+    <header class="mb-4">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">FAQ</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400">Kernvragen die vaak terugkomen bij interpretatie van de uitkomsten.</p>
+    </header>
+
+    <div class="space-y-4">
+      @for (group of faqGroups(); track trackByFaqGroup($index, group)) {
+        <section [attr.aria-label]="'FAQ groep ' + group.label">
+          <h4 class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{{ group.label }}</h4>
+          <div class="mt-2 space-y-2">
+            @for (faq of group.entries; track trackByFaqId($index, faq)) {
+              <details class="border-b border-slate-100 dark:border-slate-800 py-2">
+                <summary class="cursor-pointer py-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ faq.question }}</summary>
+                <div class="pb-2">
+                  <p class="text-sm text-slate-700 dark:text-slate-300">{{ faq.shortAnswer }}</p>
+                  @if (faq.detailedAnswer) {
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ faq.detailedAnswer }}</p>
+                  }
+                  @if (faq.detailedBullets?.length) {
+                    <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-500 dark:text-slate-400">
+                      @for (point of faq.detailedBullets; track point) {
+                        <li>{{ point }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </details>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  </section>
+
+  <div class="grid gap-4 lg:grid-cols-3">
+    <section class="lg:col-span-2 py-8 border-t border-slate-200 dark:border-slate-800" aria-label="Aannames register">
+      <header class="mb-4">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Aannamesregister</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Filter per thema of zoek op formule, bron of sleutelwoord.</p>
+      </header>
+
+      <div class="space-y-3">
+        <div class="flex flex-wrap gap-2" role="tablist" aria-label="Themafilter">
+          <button type="button" class="rounded-none border px-3 py-1.5 text-xs font-medium transition-all duration-200" [class]="themeFilter() === 'alle' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'" (click)="setThemeFilter('alle')">
+            Alles ({{ themeCounts().alle }})
+          </button>
+          <button type="button" class="rounded-none border px-3 py-1.5 text-xs font-medium transition-all duration-200" [class]="themeFilter() === 'opwek' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'" (click)="setThemeFilter('opwek')">
+            Opwek ({{ themeCounts().opwek }})
+          </button>
+          <button type="button" class="rounded-none border px-3 py-1.5 text-xs font-medium transition-all duration-200" [class]="themeFilter() === 'balans' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'" (click)="setThemeFilter('balans')">
+            Balans ({{ themeCounts().balans }})
+          </button>
+          <button type="button" class="rounded-none border px-3 py-1.5 text-xs font-medium transition-all duration-200" [class]="themeFilter() === 'kosten' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'" (click)="setThemeFilter('kosten')">
+            Kosten ({{ themeCounts().kosten }})
+          </button>
+          <button type="button" class="rounded-none border px-3 py-1.5 text-xs font-medium transition-all duration-200" [class]="themeFilter() === 'waterstof' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'" (click)="setThemeFilter('waterstof')">
+            Waterstof ({{ themeCounts().waterstof }})
+          </button>
+          <button type="button" class="rounded-none border px-3 py-1.5 text-xs font-medium transition-all duration-200" [class]="themeFilter() === 'kritisch' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'" (click)="setThemeFilter('kritisch')">
+            Kritisch ({{ themeCounts().kritisch }})
+          </button>
+        </div>
+
+        <label class="flex flex-col gap-1">
+          <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Zoeken</span>
+          <div class="flex items-center gap-2">
+            <input #searchInput type="search" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="searchQuery()" (input)="updateSearchQuery(searchInput.value)" placeholder="Bijv. winterreserve, ct/kWh, LHV, 35%">
+          </div>
+        </label>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        @for (entry of filteredAssumptions(); track trackById($index, entry)) {
+          <article class="py-4 border-b border-slate-100 dark:border-slate-800 last:border-0">
+            <header class="mb-3">
+              <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{{ getThemeLabel(entry.theme) }}</span>
+              <h4 class="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">{{ entry.title }}</h4>
+            </header>
+
+            <dl class="space-y-2 text-sm">
+              <div class="grid gap-1 sm:grid-cols-[8rem_1fr]">
+                <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Aanname</dt>
+                <dd class="text-slate-700 dark:text-slate-300">{{ entry.assumption }}</dd>
+              </div>
+              <div class="grid gap-1 sm:grid-cols-[8rem_1fr]">
+                <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Formule</dt>
+                <dd class="text-slate-700 dark:text-slate-300">{{ entry.formula }}</dd>
+              </div>
+              <div class="grid gap-1 sm:grid-cols-[8rem_1fr]">
+                <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Bron</dt>
+                <dd class="text-slate-700 dark:text-slate-300">{{ entry.source }}</dd>
+              </div>
+              <div class="grid gap-1 sm:grid-cols-[8rem_1fr]">
+                <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Impact</dt>
+                <dd class="text-slate-700 dark:text-slate-300">{{ entry.impact }}</dd>
+              </div>
+              <div class="grid gap-1 sm:grid-cols-[8rem_1fr]">
+                <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Kritische noot</dt>
+                <dd class="text-slate-700 dark:text-slate-300">{{ entry.criticalNote }}</dd>
+              </div>
+              <div class="grid gap-1 sm:grid-cols-[8rem_1fr]">
+                <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Status</dt>
+                <dd class="text-slate-700 dark:text-slate-300">
+                  @if (entry.isAdjustable) {
+                    Instelbaar
+                    @if (entry.adjustableVia) {
+                      · {{ entry.adjustableVia }}
+                    }
+                  } @else {
+                    Hardcoded
+                  }
+                </dd>
+              </div>
+            </dl>
+          </article>
+        } @empty {
+          <p class="text-sm text-slate-500 dark:text-slate-400">Geen aannames gevonden voor deze filter/zoekterm.</p>
+        }
+      </div>
+    </section>
+
+    <section class="py-8 border-t border-slate-200 dark:border-slate-800" aria-label="Vraagassistent">
+      <header class="mb-4">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Vraagassistent (lokaal)</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+          Deze assistent gebruikt alleen het aannamesregister van deze app en geeft expliciet aan wanneer iets buiten scope valt.
+        </p>
+      </header>
+
+      <div class="flex flex-wrap gap-2">
+        @for (questionSuggestion of suggestedQuestions; track questionSuggestion) {
+          <button type="button" class="rounded-none border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700" (click)="askQuestion(questionSuggestion)">
+            {{ questionSuggestion }}
+          </button>
+        }
+      </div>
+
+      <label class="mt-4 flex flex-col gap-1">
+        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Stel een vraag</span>
+        <div class="flex items-center gap-2">
+          <input #questionInput type="text" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="question()" (input)="updateQuestion(questionInput.value)" (keyup.enter)="askQuestion()" placeholder="Bijv. waarom is dit model mogelijk optimistisch voor wintertekorten?">
+          <button type="button" class="rounded-none border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" (click)="askQuestion()">Vraag</button>
+        </div>
+      </label>
+
+      <div class="mt-4 space-y-3" aria-live="polite">
+        @for (turn of chatHistory(); track trackByQuestion($index, turn)) {
+          <article class="py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
+            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ turn.question }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ getConfidenceLabel(turn.confidence) }}</p>
+            <pre class="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700 dark:text-slate-300">{{ turn.answer }}</pre>
+          </article>
+        } @empty {
+          <p class="text-sm text-slate-500 dark:text-slate-400">Nog geen vragen gesteld. Klik op een voorbeeldvraag om te starten.</p>
+        }
+      </div>
+    </section>
+  </div>
+</section>

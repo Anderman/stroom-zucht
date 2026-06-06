@@ -1,0 +1,245 @@
+<section class="mb-8" aria-label="Balans instellingen">
+  <header class="flex flex-col gap-2 border-b border-slate-200 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100">Systeem instellingen</h2>
+      <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Configureer opwek, opslag en scenario om het model opnieuw te draaien.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <select #scenarioSelect class="rounded-none border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:focus:border-emerald-500" (change)="applyScenarioSelection(scenarioSelect.value); scenarioSelect.value = ''">
+        <option value="" selected>Kies scenario...</option>
+        <option value="baseline-2025">2025 standaard</option>
+        <option value="large-battery">Grootschalige batterij</option>
+        <option value="large-battery-hydrogen">Grootschalige batterij + waterstofproductie</option>
+        <option value="wind-nuclear">Kerncentrales + waterstofproductie</option>
+        <option value="only-nuclear-hydrogen">Alleen kern + waterstofproductie</option>
+      </select>
+      <button type="button" class="rounded-none border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" (click)="resetDefaultsRequested.emit()">
+        Herstel
+      </button>
+    </div>
+  </header>
+
+  <div class="grid divide-y divide-slate-100 dark:divide-slate-800 md:grid-cols-2 md:divide-y-0 lg:grid-cols-3">
+    <!-- Zon -->
+    <div class="p-4 md:p-5">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Zon</h3>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Publiek</span>
+          <div class="flex items-center gap-1">
+            <input #solarCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="solarCapacityGW()" (input)="solarCapacityGWChange.emit(solarCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GW</span>
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Privé</span>
+          <div class="flex items-center gap-1">
+            <input #privateSolarCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="privateSolarCapacityGW()" (input)="privateSolarCapacityGWChange.emit(privateSolarCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GW</span>
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Uren</span>
+          <div class="flex items-center gap-1">
+            <input #solarFullLoadHoursInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="solarFullLoadHours()" (input)="solarFullLoadHoursChange.emit(solarFullLoadHoursInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">u</span>
+          </div>
+        </label>
+      </div>
+      <p class="mt-2 text-[10px] text-slate-500 dark:text-slate-400">{{ solarOutputText() }} · {{ privateSolarOutputText() }}</p>
+    </div>
+
+    <!-- Batterij -->
+    <div class="p-4 md:p-5">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Batterij</h3>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Publiek</span>
+          <div class="flex items-center gap-1">
+            <input #batteryCapacityInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="batteryCapacityGWh()" (input)="batteryCapacityGWhChange.emit(batteryCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GWh</span>
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Privé</span>
+          <div class="flex items-center gap-1">
+            <input #privateBatteryCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="privateBatteryCapacityGWh()" (input)="privateBatteryCapacityGWhChange.emit(privateBatteryCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GWh</span>
+          </div>
+        </label>
+      </div>
+      <label class="mt-2 flex flex-col gap-1">
+        <span class="text-[10px] text-slate-500 dark:text-slate-400">Privé-vraag aandeel: <strong class="text-slate-700 dark:text-slate-300">{{ privateDemandSharePercent() }}%</strong></span>
+        <div class="flex items-center gap-2">
+          <input #privateDemandShareSlider type="range" min="0" max="100" step="1" class="w-full accent-emerald-600" [value]="privateDemandSharePercent()" (input)="privateDemandSharePercentChange.emit(privateDemandShareSlider.value)">
+        </div>
+      </label>
+      <label class="mt-2 flex flex-col gap-1">
+        <span class="text-[10px] text-slate-500 dark:text-slate-400">Max privénet</span>
+        <div class="flex items-center gap-1">
+          <input #privateGridMaxLoadInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="privateGridMaxLoadGW()" (input)="privateGridMaxLoadGWChange.emit(privateGridMaxLoadInput.value)">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">GW</span>
+        </div>
+      </label>
+    </div>
+
+    <!-- Wind land -->
+    <div class="p-4 md:p-5">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-blue-400"></span>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Wind land</h3>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Vermogen</span>
+          <div class="flex items-center gap-1">
+            <input #windlandCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="windlandCapacityGW()" (input)="windlandCapacityGWChange.emit(windlandCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GW</span>
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Vollasturen</span>
+          <div class="flex items-center gap-1">
+            <input #windlandFullLoadHoursInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="windlandFullLoadHours()" (input)="windlandFullLoadHoursChange.emit(windlandFullLoadHoursInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">u</span>
+          </div>
+        </label>
+      </div>
+      <p class="mt-2 text-[10px] text-slate-500 dark:text-slate-400">{{ windlandOutputText() }}</p>
+    </div>
+
+    <!-- Wind zee -->
+    <div class="p-4 md:p-5">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-cyan-500"></span>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Wind zee</h3>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Vermogen</span>
+          <div class="flex items-center gap-1">
+            <input #windzeeCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="windzeeCapacityGW()" (input)="windzeeCapacityGWChange.emit(windzeeCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GW</span>
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Vollasturen</span>
+          <div class="flex items-center gap-1">
+            <input #windzeeFullLoadHoursInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="windzeeFullLoadHours()" (input)="windzeeFullLoadHoursChange.emit(windzeeFullLoadHoursInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">u</span>
+          </div>
+        </label>
+      </div>
+      <p class="mt-2 text-[10px] text-slate-500 dark:text-slate-400">{{ windzeeOutputText() }}</p>
+    </div>
+
+    <!-- Kernenergie -->
+    <div class="p-4 md:p-5">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-violet-500"></span>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Kernenergie</h3>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Vermogen</span>
+          <div class="flex items-center gap-1">
+            <input #nuclearCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="nuclearCapacityGW()" (input)="nuclearCapacityGWChange.emit(nuclearCapacityInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">GW</span>
+          </div>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Vollasturen</span>
+          <div class="flex items-center gap-1">
+            <input #nuclearFullLoadHoursInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="nuclearFullLoadHours()" (input)="nuclearFullLoadHoursChange.emit(nuclearFullLoadHoursInput.value)">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">u</span>
+          </div>
+        </label>
+      </div>
+      <p class="mt-2 text-[10px] text-slate-500 dark:text-slate-400">{{ nuclearOutputText() }}</p>
+    </div>
+
+    <!-- Waterstof -->
+    @if (showHydrogenProductionControl()) {
+      <div class="p-4 md:p-5">
+        <div class="mb-3 flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-pink-500"></span>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Waterstof</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">Outputdoel</span>
+            <div class="flex items-center gap-1">
+              <input #hydrogenOutputTargetInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="hydrogenOutputTargetTWh()" (input)="hydrogenOutputTargetTWhChange.emit(hydrogenOutputTargetInput.value)">
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">TWh</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">Rendement</span>
+            <div class="flex items-center gap-1">
+              <input #electrolyzerEfficiencyInput type="number" min="1" max="100" step="0.1" class="w-full rounded-none border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="electrolyzerEfficiencyPercent()" (input)="electrolyzerEfficiencyPercentChange.emit(electrolyzerEfficiencyInput.value)">
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">%</span>
+            </div>
+          </label>
+        </div>
+        <p class="mt-2 text-[10px] text-slate-500 dark:text-slate-400">Input nodig: {{ hydrogenRequiredElectricityTWh() }} TWh/jr</p>
+      </div>
+    }
+  </div>
+
+  <details class="border-t border-slate-200 dark:border-slate-800">
+    <summary class="cursor-pointer select-none py-3 text-xs font-semibold text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">Hoe werkt de simulatie?</summary>
+    <div class="space-y-3 pb-4 pt-0 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Opwekbronnen</strong><br>
+        Publiek: windland + windzee + publieke zon + Borssele + kernenergie nieuwbouw + afval/biogas.<br>
+        Afval/biogas telt altijd mee als vaste basislast van 300 MW en kan niet uit.<br>
+        Privé: privé zonnepanelen (daken).<br>
+        Noot: privé zon en privé batterij zitten achter de meter van huishoudens en bedrijven.
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Ruwe balans (per uur)</strong><br>
+        Ruwe balans = totale opwek − vraag.<br>
+        Positief = surplus, negatief = tekort.
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Privé-vraag aandeel</strong><br>
+        Het ingestelde percentage bepaalt welk deel van de uurvraag eerst door privé-opwek en privé-opslag wordt bediend.
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Laadstrategie bij surplus</strong><br>
+        Privé-surplus gaat eerst naar de privébatterij en kan daarna naar de publieke kant.<br>
+        De privébatterij verkoopt alleen het deel dat anders (na 24 uur vooruitkijken) als <em>curtailment</em> zou worden weggegooid.<br>
+        Publiek surplus gaat eerst naar de publieke batterij en kan daarna de privébatterij bijvullen tot de seizoensreserve.<br>
+        De private netlimiet begrenst per uur de som van publiek→privé laden en privé import voor verbruik.<br>
+        Als daarna nog surplus overblijft, wordt eerst publiek teruggeregeld in deze volgorde: windland → windzee → publieke zon → kern (kern blijft minimaal 50% online).<br>
+        Pas als dat niet genoeg is, wordt privé teruggeregeld.<br>
+        Bij een positief waterstofdoel wordt daarna resterend overschot naar elektrolyse gestuurd; het jaardoel is hierbij een referentie en geen harde stop op productie.<br>
+        PV-naar-elektrolyse blijft begrensd op 35 GW/uur. Wat daarna overblijft is <em>curtailment</em> (afgeknepen opwek).
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Ontlaadstrategie bij tekort</strong><br>
+        Privé gebruikt eerst eigen opwek en daarna eigen batterij (met seizoensreserve als ondergrens in normale uren).<br>
+        Bij een publiek tekort ontlaadt eerst de privébatterij richting de publieke kant, daarna pas de publieke batterij.<br>
+        In nood kan de reserve alsnog worden aangesproken als er anders tekort overblijft.<br>
+        Wat dan nog overblijft is de <em>restbalans</em> (ongedekt tekort).
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Seizoensreserve privébatterij</strong><br>
+        Oktober t/m februari: minimaal 50% SOC.<br>
+        Maart t/m september: minimaal 20% SOC.<br>
+        Publiek overschot kan de privébatterij tot deze reservegrens aanvullen.
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Max private netbelasting (GW)</strong><br>
+        Instelbaar in de batterijsectie (default 35 GW).<br>
+        Begrenst per uur het gecombineerde gebruik van publieke netlevering voor privé-vraag en publiek→privé laden.
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Max laadvermogen publiek (GW)</strong><br>
+        Ingesteld via het batterij kostmodel (Kosten-tab → Laadvermogen).<br>
+        Begrenst hoeveel er per uur in de publieke batterij geladen kan worden.
+      </p>
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Beginstatus &amp; convergentie</strong><br>
+        De simulatie start met batterijen op halve capaciteit en herhaalt maximaal 5 keer totdat begin- en eindstatus vrijwel gelijk zijn (&lt;1 kWh verschil).
+      </p>
+    </div>
+  </details>
+</section>

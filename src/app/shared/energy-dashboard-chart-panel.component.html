@@ -1,0 +1,57 @@
+<section class="py-8" [class]="isChartMaximized() ? 'fixed inset-2 z-40 flex flex-col bg-white dark:bg-slate-950' : 'relative flex flex-col'">
+  <header class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ presentationStore.selectedDatasetLabel() }}</h2>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ presentationStore.selectedDatasetDescription() }}</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <p class="text-xs text-slate-500 dark:text-slate-400">Ctrl+scroll of sleep over een gebied om te zoomen</p>
+      <button type="button" class="rounded-none border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" (click)="toggleChartMaximized()" [attr.aria-pressed]="isChartMaximized()">{{ isChartMaximized() ? 'Normaal' : 'Maximaliseer' }}</button>
+      <button type="button" class="rounded-none border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-default disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" (click)="viewStore.resetZoom()" [disabled]="!store.hasActiveZoom()">Reset zoom</button>
+    </div>
+  </header>
+
+  @if (dataStore.errorMessage(); as error) {
+    <div class="flex min-h-[85vh] items-center justify-center rounded-none border border-dashed border-red-300 bg-red-50 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/20 dark:text-red-400" role="alert">{{ error }}</div>
+  } @else if (dataStore.isLoading()) {
+    <div class="flex min-h-[85vh] items-center justify-center rounded-none border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">Data wordt geladen...</div>
+  } @else {
+    <div class="relative h-[65vh] flex-1 overflow-hidden rounded-none border border-slate-200 dark:border-slate-700">
+      <app-energy-chart
+        [timestamps]="store.chartTimestamps()"
+        [dataset]="store.selectedDataset()"
+        [chartSeries]="store.visibleChartSeries()"
+        [chartBands]="store.visibleChartBands()"
+        [weekendRanges]="store.visibleWeekendRanges()"
+        [xAxisMode]="store.chartXAxisMode()"
+        [xWindow]="viewStore.xWindow()"
+        (hoveredIndexChange)="viewStore.setHoveredIndex($event)"
+        (hoverPositionChange)="viewStore.setHoverPosition($event)"
+        (xWindowChange)="viewStore.setXWindow($event)"
+        (resetZoomRequested)="viewStore.resetZoom()"
+      ></app-energy-chart>
+      @if (presentationStore.isTooltipVisible()) {
+        <div class="pointer-events-none absolute z-10 min-w-[10.5rem] -translate-x-1/2 -translate-y-full rounded-none border border-slate-200 bg-white/95 p-3 text-sm shadow-none backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95" [style.left.px]="presentationStore.tooltipLeft()" [style.top.px]="presentationStore.tooltipTop()" aria-live="polite">
+          <div class="text-xs text-slate-500 dark:text-slate-400">{{ presentationStore.hoveredMomentText() }}</div>
+          <div class="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">{{ presentationStore.hoveredValueText() }}</div>
+          @for (item of presentationStore.hoveredBreakdownItems(); track item.label) {
+            <div class="mt-1 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full" [style.background]="item.color"></span>{{ item.label }}</span>
+              <span>{{ item.valueText }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    @if (presentationStore.chartLegendItems().length) {
+      <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400" aria-label="Grafiek legenda">
+        @for (item of presentationStore.chartLegendItems(); track item.label) {
+          <button type="button" class="inline-flex items-center gap-1.5 rounded-none border px-2.5 py-1 text-xs font-medium transition-all duration-200" [class]="item.active ? 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300' : 'border-transparent bg-transparent text-slate-400 opacity-50 dark:text-slate-500'" (click)="viewStore.toggleLegendItem(item.label)" [attr.aria-pressed]="item.active" [attr.aria-label]="item.active ? 'Verberg ' + item.label : 'Toon ' + item.label">
+            <span class="h-0 w-5 rounded-full border-t-2" [class]="item.dashed ? 'border-dashed' : 'border-solid'" [style.border-color]="item.color"></span>
+            <span>{{ item.label }}</span>
+          </button>
+        }
+      </div>
+    }
+  }
+</section>

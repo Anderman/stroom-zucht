@@ -1,0 +1,156 @@
+@import 'tailwindcss';
+@source "./**/*.{html,ts}";
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@import 'uplot/dist/uPlot.min.css';
+
+@theme {
+  /* Dutch Government Blue (Rijkshuisstijl #01689b) mapped over emerald utilities */
+  --color-emerald-50: #e5f1f6;
+  --color-emerald-100: #cce0eb;
+  --color-emerald-200: #99c2d7;
+  --color-emerald-300: #66a3c2;
+  --color-emerald-400: #3385ae;
+  --color-emerald-500: #01689b;
+  --color-emerald-600: #015885;
+  --color-emerald-700: #01486f;
+  --color-emerald-800: #013859;
+  --color-emerald-900: #002843;
+  --color-emerald-950: #00182d;
+
+  /* Dutch Government Orange mapped over amber utilities */
+  --color-amber-50: #fff4e6;
+  --color-amber-100: #ffe8cc;
+  --color-amber-200: #ffd9a8;
+  --color-amber-300: #ffc47a;
+  --color-amber-400: #ffaa4d;
+  --color-amber-500: #d87b00;
+  --color-amber-600: #b56a00;
+  --color-amber-700: #8f5300;
+  --color-amber-800: #6b3d00;
+  --color-amber-900: #4d2b00;
+  --color-amber-950: #331c00;
+
+  --color-primary-50: #e5f1f6;
+  --color-primary-100: #cce0eb;
+  --color-primary-200: #99c2d7;
+  --color-primary-300: #66a3c2;
+  --color-primary-400: #3385ae;
+  --color-primary-500: #01689b;
+  --color-primary-600: #015885;
+  --color-primary-700: #01486f;
+  --color-primary-800: #013859;
+  --color-primary-900: #002843;
+  --color-primary-950: #00182d;
+
+  --color-accent-50: #fff4e6;
+  --color-accent-100: #ffe8cc;
+  --color-accent-200: #ffd9a8;
+  --color-accent-300: #ffc47a;
+  --color-accent-400: #ffaa4d;
+  --color-accent-500: #d87b00;
+  --color-accent-600: #b56a00;
+  --color-accent-700: #8f5300;
+  --color-accent-800: #6b3d00;
+  --color-accent-900: #4d2b00;
+  --color-accent-950: #331c00;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #ffffff;
+}
+
+[data-theme='dark'] body {
+  background-color: var(--color-slate-950);
+}
+
+/* Custom scrollbar — thin and utilitarian */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+[data-theme='dark'] html {
+  scrollbar-color: #475569 transparent;
+}
+
+/* Calc table needs a very specific grid that is hard to express with utilities */
+.calc-table {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.calc-table__head,
+.calc-table__row {
+  display: grid;
+  grid-template-columns:
+    minmax(11rem, 1.25fr)
+    minmax(5.8rem, 0.72fr)
+    minmax(6.2rem, 0.78fr)
+    repeat(5, minmax(4.8rem, 0.64fr))
+    minmax(6rem, 0.78fr)
+    repeat(3, minmax(6.2rem, 0.84fr));
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .calc-table__head,
+  .calc-table__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Hydrogen cost table specific grid */
+.hydrogen-cost-table__head,
+.hydrogen-cost-table__row {
+  display: grid;
+  align-items: center;
+  gap: 0.55rem;
+  grid-template-columns: minmax(7rem, 1.2fr) repeat(4, minmax(6rem, 1fr)) minmax(9.5rem, 1.2fr);
+  padding: 0.72rem;
+}
+
+@media (max-width: 900px) {
+  .hydrogen-cost-table__head,
+  .hydrogen-cost-table__row {
+    grid-template-columns: 1fr;
+  }
+}

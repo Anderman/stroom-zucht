@@ -1,0 +1,185 @@
+<section class="mb-4 flex flex-wrap gap-2" aria-label="Datakeuze">
+  @for (dataset of visibleDatasets; track dataset.key) {
+    <button
+      type="button"
+      class="inline-flex items-center gap-2 rounded-none border px-4 py-2 text-sm font-medium transition-all duration-200"
+      [class]="dataset.key === viewStore.activeDataset()
+        ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-800'"
+      (click)="viewStore.selectDataset(dataset.key)"
+      [attr.aria-pressed]="dataset.key === viewStore.activeDataset()"
+    >
+      <span class="h-2.5 w-2.5 rounded-full" [style.background]="dataset.color"></span>
+      <span>{{ dataset.label }}</span>
+    </button>
+  }
+</section>
+
+@if (viewStore.activeDataset() === 'balance') {
+  <section class="mb-4 flex flex-wrap gap-2" aria-label="Balansgrafiek weergave">
+    @for (mode of store.balanceChartModes; track mode.key) {
+      <button
+        type="button"
+        class="rounded-none border px-4 py-2 text-sm font-medium transition-all duration-200"
+        [class]="mode.key === viewStore.activeBalanceChartMode()
+          ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-800'"
+        (click)="viewStore.selectBalanceChartMode(mode.key)"
+        [attr.aria-pressed]="mode.key === viewStore.activeBalanceChartMode()"
+      >
+        {{ mode.label }}
+      </button>
+    }
+  </section>
+}
+
+<app-balance-controls
+  [batteryCapacityGWh]="scenarioStore.batteryCapacityGWh()"
+  [privateBatteryCapacityGWh]="scenarioStore.privateBatteryCapacityGWh()"
+  [hydrogenOutputTargetTWh]="scenarioStore.hydrogenOutputTargetTWh()"
+  [electrolyzerEfficiencyPercent]="scenarioStore.electrolyzerEfficiencyPercent()"
+  [hydrogenRequiredElectricityTWh]="scenarioStore.hydrogenProductionTargetTWh()"
+  [privateGridMaxLoadGW]="scenarioStore.privateGridMaxLoadGW()"
+  [privateDemandSharePercent]="scenarioStore.privateDemandShare() * 100"
+  [privateSolarCapacityGW]="scenarioStore.privateSolarCapacityGW()"
+  [solarCapacityGW]="scenarioStore.solarCapacityGW()"
+  [solarFullLoadHours]="scenarioStore.solarFullLoadHours()"
+  [windlandCapacityGW]="scenarioStore.windlandCapacityGW()"
+  [windlandFullLoadHours]="scenarioStore.windlandFullLoadHours()"
+  [windzeeCapacityGW]="scenarioStore.windzeeCapacityGW()"
+  [windzeeFullLoadHours]="scenarioStore.windzeeFullLoadHours()"
+  [nuclearCapacityGW]="scenarioStore.nuclearCapacityGW()"
+  [nuclearFullLoadHours]="scenarioStore.nuclearFullLoadHours()"
+  [solarOutputText]="scenarioStore.adjustedSolarTWhText()"
+  [privateSolarOutputText]="scenarioStore.privateSolarTWhText()"
+  [publicBatteryText]="scenarioStore.publicBatteryText()"
+  [privateBatteryText]="scenarioStore.privateBatteryText()"
+  [windlandOutputText]="scenarioStore.adjustedWindlandTWhText()"
+  [windzeeOutputText]="scenarioStore.adjustedWindzeeTWhText()"
+  [nuclearOutputText]="scenarioStore.nuclearTWhText()"
+  (batteryCapacityGWhChange)="scenarioStore.setBatteryCapacityGWh($event)"
+  (privateBatteryCapacityGWhChange)="scenarioStore.setPrivateBatteryCapacityGWh($event)"
+  (hydrogenOutputTargetTWhChange)="scenarioStore.setHydrogenOutputTargetTWh($event)"
+  (electrolyzerEfficiencyPercentChange)="scenarioStore.setElectrolyzerEfficiencyPercent($event)"
+  (privateGridMaxLoadGWChange)="scenarioStore.setPrivateGridMaxLoadGW($event)"
+  (privateDemandSharePercentChange)="scenarioStore.setPrivateDemandShare($event)"
+  (privateSolarCapacityGWChange)="scenarioStore.setPrivateSolarCapacityGW($event)"
+  (solarCapacityGWChange)="scenarioStore.setSolarCapacityGW($event)"
+  (solarFullLoadHoursChange)="scenarioStore.setSolarFullLoadHours($event)"
+  (windlandCapacityGWChange)="scenarioStore.setWindlandCapacityGW($event)"
+  (windlandFullLoadHoursChange)="scenarioStore.setWindlandFullLoadHours($event)"
+  (windzeeCapacityGWChange)="scenarioStore.setWindzeeCapacityGW($event)"
+  (windzeeFullLoadHoursChange)="scenarioStore.setWindzeeFullLoadHours($event)"
+  (nuclearCapacityGWChange)="scenarioStore.setNuclearCapacityGW($event)"
+  (nuclearFullLoadHoursChange)="scenarioStore.setNuclearFullLoadHours($event)"
+  (largeBatteryScenarioRequested)="scenarioStore.applyLargeBatteryScenario()"
+  (largeBatteryHydrogenScenarioRequested)="scenarioStore.applyLargeBatteryHydrogenScenario()"
+  (windNuclearScenarioRequested)="scenarioStore.applyWindAndNuclearScenario()"
+  (onlyNuclearHydrogenScenarioRequested)="scenarioStore.applyOnlyNuclearHydrogenScenario()"
+  (resetDefaultsRequested)="scenarioStore.resetBalanceDefaults()"
+></app-balance-controls>
+
+@if (viewStore.activeDataset() === 'balance') {
+  <section class="mb-6" aria-label="Balans samenvatting">
+    <details class="group" open>
+      <summary class="cursor-pointer list-none">
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Balans kerncijfers</h2>
+          <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▼</span>
+        </div>
+      </summary>
+      <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Bruto balans</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceGrossDifferenceTWhText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Opwek - vraag, zonder publiek/privaat</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Netto balans</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.totalValueText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Na opslag en dispatch</span>
+        </div>
+        <div class="border-t border-emerald-200 pt-4 dark:border-emerald-800">
+          <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Publiek overschot</span>
+          <strong class="mt-1 block text-3xl font-semibold text-emerald-700 dark:text-emerald-300">{{ presentationStore.curtailmentTWhText() }}</strong>
+          <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Na batterijopslag</span>
+        </div>
+        <div class="border-t border-amber-200 pt-4 dark:border-amber-800">
+          <span class="text-xs font-medium text-amber-600 dark:text-amber-400">Privé overschot</span>
+          <strong class="mt-1 block text-3xl font-semibold text-amber-700 dark:text-amber-300">{{ presentationStore.privateCurtailmentTWhText() }}</strong>
+          <span class="text-xs text-amber-600/70 dark:text-amber-400/70">Nadat batterijen vol zijn</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Overschoturen</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceSurplusHoursText() }}</strong>
+        </div>
+        <div class="border-t border-red-200 pt-4 dark:border-red-800">
+          <span class="text-xs font-medium text-red-600 dark:text-red-400">Tekorturen</span>
+          <strong class="mt-1 block text-3xl font-semibold text-red-700 dark:text-red-300">{{ presentationStore.balanceShortageHoursText() }}</strong>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Piek</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.peakValueText() }} {{ store.selectedDataset().peakUnit }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">{{ presentationStore.peakMomentText() }}</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Tekort</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceShortageTWhText() }}</strong>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="mb-6" aria-label="Waterstof systeem">
+    <details class="group">
+      <summary class="cursor-pointer list-none">
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Waterstof systeem</h2>
+          <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▼</span>
+        </div>
+      </summary>
+      <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Stroomdoel elektrolyse</span>
+          <strong class="mt-1 block text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ hydrogenRequiredInputDemandTWhText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Benodigd uit outputdoel / rendement</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Geleverd aan elektrolyse</span>
+          <strong class="mt-1 block text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{{ hydrogenDeliveredTWhText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Werkelijk gerouteerd overschot</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Resterend doel</span>
+          <strong class="mt-1 block text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ hydrogenInputGapTWhText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">{{ hydrogenOutputCoverageText() }}</span>
+        </div>
+      </div>
+    </details>
+  </section>
+}
+
+@if (presentationStore.totalDemandSummaryItems().length) {
+  <section class="mb-6" aria-label="Totale vraag">
+    <details class="group" open>
+      <summary class="cursor-pointer list-none">
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Totale vraag</h2>
+          <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▼</span>
+        </div>
+      </summary>
+      <div class="mt-4 space-y-3">
+        @for (item of presentationStore.totalDemandSummaryItems(); track item.label) {
+          <div class="flex items-center gap-4 border-b border-slate-100 py-3 dark:border-slate-800 last:border-0">
+            <span class="h-3 w-3 rounded-full" [style.background]="item.color"></span>
+            <span class="min-w-[120px] text-sm font-medium text-slate-700 dark:text-slate-300">{{ item.label }}</span>
+            <strong class="ml-auto text-lg font-semibold text-slate-900 dark:text-slate-100">{{ item.totalText }}</strong>
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ item.shareText }}</span>
+          </div>
+        }
+      </div>
+    </details>
+  </section>
+}
+
+<app-energy-dashboard-chart-panel></app-energy-dashboard-chart-panel>

@@ -1,0 +1,123 @@
+<app-balance-controls
+  [showHydrogenProductionControl]="false"
+  [batteryCapacityGWh]="balanceStore.batteryCapacityGWh()"
+  [privateBatteryCapacityGWh]="balanceStore.privateBatteryCapacityGWh()"
+  [hydrogenOutputTargetTWh]="balanceStore.hydrogenOutputTargetTWh()"
+  [electrolyzerEfficiencyPercent]="balanceStore.electrolyzerEfficiencyPercent()"
+  [hydrogenRequiredElectricityTWh]="balanceStore.hydrogenProductionTargetTWh()"
+  [privateGridMaxLoadGW]="balanceStore.privateGridMaxLoadGW()"
+  [privateDemandSharePercent]="balanceStore.privateDemandShare() * 100"
+  [privateSolarCapacityGW]="balanceStore.privateSolarCapacityGW()"
+  [solarCapacityGW]="balanceStore.solarCapacityGW()"
+  [solarFullLoadHours]="balanceStore.solarFullLoadHours()"
+  [windlandCapacityGW]="balanceStore.windlandCapacityGW()"
+  [windlandFullLoadHours]="balanceStore.windlandFullLoadHours()"
+  [windzeeCapacityGW]="balanceStore.windzeeCapacityGW()"
+  [windzeeFullLoadHours]="balanceStore.windzeeFullLoadHours()"
+  [nuclearCapacityGW]="balanceStore.nuclearCapacityGW()"
+  [nuclearFullLoadHours]="balanceStore.nuclearFullLoadHours()"
+  [solarOutputText]="balanceStore.adjustedSolarTWhText()"
+  [privateSolarOutputText]="balanceStore.privateSolarTWhText()"
+  [publicBatteryText]="balanceStore.publicBatteryText()"
+  [privateBatteryText]="balanceStore.privateBatteryText()"
+  [windlandOutputText]="balanceStore.adjustedWindlandTWhText()"
+  [windzeeOutputText]="balanceStore.adjustedWindzeeTWhText()"
+  [nuclearOutputText]="balanceStore.nuclearTWhText()"
+  (batteryCapacityGWhChange)="balanceStore.setBatteryCapacityGWh($event)"
+  (privateBatteryCapacityGWhChange)="balanceStore.setPrivateBatteryCapacityGWh($event)"
+  (hydrogenOutputTargetTWhChange)="balanceStore.setHydrogenOutputTargetTWh($event)"
+  (electrolyzerEfficiencyPercentChange)="balanceStore.setElectrolyzerEfficiencyPercent($event)"
+  (privateGridMaxLoadGWChange)="balanceStore.setPrivateGridMaxLoadGW($event)"
+  (privateDemandSharePercentChange)="balanceStore.setPrivateDemandShare($event)"
+  (privateSolarCapacityGWChange)="balanceStore.setPrivateSolarCapacityGW($event)"
+  (solarCapacityGWChange)="balanceStore.setSolarCapacityGW($event)"
+  (solarFullLoadHoursChange)="balanceStore.setSolarFullLoadHours($event)"
+  (windlandCapacityGWChange)="balanceStore.setWindlandCapacityGW($event)"
+  (windlandFullLoadHoursChange)="balanceStore.setWindlandFullLoadHours($event)"
+  (windzeeCapacityGWChange)="balanceStore.setWindzeeCapacityGW($event)"
+  (windzeeFullLoadHoursChange)="balanceStore.setWindzeeFullLoadHours($event)"
+  (nuclearCapacityGWChange)="balanceStore.setNuclearCapacityGW($event)"
+  (nuclearFullLoadHoursChange)="balanceStore.setNuclearFullLoadHours($event)"
+  (largeBatteryScenarioRequested)="balanceStore.applyLargeBatteryScenario()"
+  (largeBatteryHydrogenScenarioRequested)="balanceStore.applyLargeBatteryHydrogenScenario()"
+  (windNuclearScenarioRequested)="balanceStore.applyWindAndNuclearScenario()"
+  (onlyNuclearHydrogenScenarioRequested)="balanceStore.applyOnlyNuclearHydrogenScenario()"
+  (resetDefaultsRequested)="balanceStore.resetBalanceDefaults()"
+></app-balance-controls>
+
+<app-energy-dashboard-calculations-panel></app-energy-dashboard-calculations-panel>
+
+@if (viewStore.activeDataset() === 'balance') {
+  <section class="mb-6" aria-label="Balans samenvatting">
+    <details class="group" open>
+      <summary class="cursor-pointer list-none">
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Balans kerncijfers</h2>
+          <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▼</span>
+        </div>
+      </summary>
+      <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Bruto balans</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceGrossDifferenceTWhText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Opwek - vraag</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Netto balans</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.totalValueText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Na dispatch</span>
+        </div>
+        <div class="border-t border-emerald-200 pt-4 dark:border-emerald-800">
+          <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Publiek overschot</span>
+          <strong class="mt-1 block text-3xl font-semibold text-emerald-700 dark:text-emerald-300">{{ presentationStore.curtailmentTWhText() }}</strong>
+          <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Na batterijopslag</span>
+        </div>
+        <div class="border-t border-amber-200 pt-4 dark:border-amber-800">
+          <span class="text-xs font-medium text-amber-600 dark:text-amber-400">Privé overschot</span>
+          <strong class="mt-1 block text-3xl font-semibold text-amber-700 dark:text-amber-300">{{ presentationStore.privateCurtailmentTWhText() }}</strong>
+          <span class="text-xs text-amber-600/70 dark:text-amber-400/70">Nadat batterijen vol zijn</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Overschoturen</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceSurplusHoursText() }}</strong>
+        </div>
+        <div class="border-t border-red-200 pt-4 dark:border-red-800">
+          <span class="text-xs font-medium text-red-600 dark:text-red-400">Tekorturen</span>
+          <strong class="mt-1 block text-3xl font-semibold text-red-700 dark:text-red-300">{{ presentationStore.balanceShortageHoursText() }}</strong>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Piek</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.peakValueText() }} {{ store.selectedDataset().peakUnit }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400">{{ presentationStore.peakMomentText() }}</span>
+        </div>
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Tekort</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceShortageTWhText() }}</strong>
+        </div>
+      </div>
+    </details>
+  </section>
+}
+
+@if (presentationStore.totalDemandSummaryItems().length) {
+  <section class="mb-6" aria-label="Totale vraag">
+    <details class="group" open>
+      <summary class="cursor-pointer list-none">
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Totale vraag</h2>
+          <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▼</span>
+        </div>
+      </summary>
+      <div class="mt-4 space-y-3">
+        @for (item of presentationStore.totalDemandSummaryItems(); track item.label) {
+          <div class="flex items-center gap-4 border-b border-slate-100 py-3 dark:border-slate-800 last:border-0">
+            <span class="h-3 w-3 rounded-full" [style.background]="item.color"></span>
+            <span class="min-w-[120px] text-sm font-medium text-slate-700 dark:text-slate-300">{{ item.label }}</span>
+            <strong class="ml-auto text-lg font-semibold text-slate-900 dark:text-slate-100">{{ item.totalText }}</strong>
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ item.shareText }}</span>
+          </div>
+        }
+      </div>
+    </details>
+  </section>
+}

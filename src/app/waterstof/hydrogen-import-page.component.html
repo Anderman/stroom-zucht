@@ -1,0 +1,203 @@
+<section class="mb-8" aria-label="Waterstof systeem">
+  <header class="border-b border-slate-200 py-4 dark:border-slate-800">
+    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Waterstof systeem</h2>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Configureer het aparte waterstofsysteem: productie, gereserveerde offshore wind, elektrolysercapaciteit en de koppeling met grid-overschot.</p>
+  </header>
+
+  <div class="grid divide-y divide-slate-100 dark:divide-slate-800 md:grid-cols-2 md:divide-y-0 lg:grid-cols-3">
+    <label class="flex flex-col gap-1.5 p-4 md:p-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Outputdoel</span>
+      <div class="flex items-center gap-2">
+        <input #targetInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenOutputTargetTWh()" (input)="balanceStore.setHydrogenOutputTargetTWh(targetInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">TWh/jr</span>
+      </div>
+    </label>
+
+    <label class="flex flex-col gap-1.5 p-4 md:p-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Elektrolyserrendement</span>
+      <div class="flex items-center gap-2">
+        <input #efficiencyInput type="number" min="1" max="100" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.electrolyzerEfficiencyPercent()" (input)="balanceStore.setElectrolyzerEfficiencyPercent(efficiencyInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">%</span>
+      </div>
+    </label>
+
+    <label class="flex flex-col gap-1.5 p-4 md:p-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Offshore wind H2</span>
+      <div class="flex items-center gap-2">
+        <input #dedicatedWindInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenDedicatedOffshoreWindCapacityGW()" (input)="balanceStore.setHydrogenDedicatedOffshoreWindCapacityGW(dedicatedWindInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+      </div>
+    </label>
+
+    <label class="flex flex-col gap-1.5 p-4 md:p-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Elektrolyser</span>
+      <div class="flex items-center gap-2">
+        <input #electrolyzerInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenElectrolyzerCapacityGW()" (input)="balanceStore.setHydrogenElectrolyzerCapacityGW(electrolyzerInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+      </div>
+    </label>
+
+    <label class="flex flex-col gap-1.5 p-4 md:p-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Grid-importlimiet</span>
+      <div class="flex items-center gap-2">
+        <input #gridImportInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenGridImportLimitGW()" (input)="balanceStore.setHydrogenGridImportLimitGW(gridImportInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+      </div>
+    </label>
+
+    <label class="flex flex-col gap-1.5 p-4 md:p-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Grid-exportlimiet</span>
+      <div class="flex items-center gap-2">
+        <input #gridExportInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenGridExportLimitGW()" (input)="balanceStore.setHydrogenGridExportLimitGW(gridExportInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+      </div>
+    </label>
+  </div>
+
+  <!-- Kostenparameters (collapsed by default) -->
+  <details class="border-t border-slate-200 dark:border-slate-800">
+    <summary class="cursor-pointer select-none py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+      Kostenparameters · {{ h2TotalAnnualCostText() }}
+    </summary>
+    <div class="border-t border-slate-200 py-4 dark:border-slate-800">
+      <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">Alle waarden zijn per GW. De totale H2-systeemkosten bestaan uit capex, opex en ingekochte grid-kWh.</p>
+
+      <div class="overflow-x-auto">
+        <div class="min-w-[40rem]">
+          <div class="hydrogen-cost-table__head rounded-t-none border border-slate-200 bg-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
+            <span>Systeem</span>
+            <span>Capex (M€/GW)</span>
+            <span>Opex (M€/GW/jaar)</span>
+            <span>Levensduur (jaar)</span>
+            <span>Rente (%)</span>
+            <span class="text-right">Jaarlijkse kosten</span>
+          </div>
+
+          <div class="hydrogen-cost-table__row border-x border-b border-slate-200 bg-white text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            <strong class="text-slate-900 dark:text-slate-100">Eigen opwek (wind)</strong>
+            <input #h2WindCapexInput type="number" min="0" step="10" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().dedicatedWindCapexPerGWEur / 1_000_000" (input)="costsStore.setHydrogenDedicatedWindCapexPerGW(h2WindCapexInput.value)">
+            <input #h2WindOpexInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().dedicatedWindOpexPerGWEur / 1_000_000" (input)="costsStore.setHydrogenDedicatedWindOpexPerGW(h2WindOpexInput.value)">
+            <input #h2WindLifetimeInput type="number" min="1" step="0.5" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().dedicatedWindLifetimeYears" (input)="costsStore.setHydrogenDedicatedWindLifetimeYears(h2WindLifetimeInput.value)">
+            <input #h2WindInterestInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().dedicatedWindInterestRatePercent" (input)="costsStore.setHydrogenDedicatedWindInterestRatePercent(h2WindInterestInput.value)">
+            <strong class="text-right text-slate-900 dark:text-slate-100">{{ h2DedicatedWindAnnualCostText() }}</strong>
+          </div>
+
+          <div class="hydrogen-cost-table__row rounded-b-none border-x border-b border-slate-200 bg-white text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            <strong class="text-slate-900 dark:text-slate-100">Elektrolyser</strong>
+            <input #h2ElCapexInput type="number" min="0" step="10" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().electrolyzerCapexPerGWEur / 1_000_000" (input)="costsStore.setHydrogenElectrolyzerCapexPerGW(h2ElCapexInput.value)">
+            <input #h2ElOpexInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().electrolyzerOpexPerGWEur / 1_000_000" (input)="costsStore.setHydrogenElectrolyzerOpexPerGW(h2ElOpexInput.value)">
+            <input #h2ElLifetimeInput type="number" min="1" step="0.5" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().electrolyzerLifetimeYears" (input)="costsStore.setHydrogenElectrolyzerLifetimeYears(h2ElLifetimeInput.value)">
+            <input #h2ElInterestInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().electrolyzerInterestRatePercent" (input)="costsStore.setHydrogenElectrolyzerInterestRatePercent(h2ElInterestInput.value)">
+            <strong class="text-right text-slate-900 dark:text-slate-100">{{ h2ElectrolyzerAnnualCostText() }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- Productieresultaat - collapsed by default -->
+<section class="mb-8" aria-label="Productieresultaat">
+  <details class="group" open>
+    <summary class="cursor-pointer list-none">
+      <div class="flex items-center gap-3 py-4">
+        <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100">Productie & kosten</h2>
+        <span class="rounded-none bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">{{ producedOutputText() }}</span>
+        <span class="text-[10px] text-slate-400 dark:text-slate-500">Klik om details te tonen</span>
+        <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▼</span>
+      </div>
+    </summary>
+    <div class="border-t border-slate-200 py-4 dark:border-slate-800">
+      <div class="grid gap-4 lg:grid-cols-2">
+        <!-- Productie -->
+        <div>
+          <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Productie</h3>
+          <div class="space-y-2">
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Doel output</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ coverageText() }}</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ targetOutputText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Benodigde input</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ balanceStore.electrolyzerEfficiencyPercent() }}% rendement</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ targetInputText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 px-2 dark:border-emerald-700 dark:bg-emerald-900/20">
+              <span class="min-w-[140px] text-sm font-medium text-emerald-700 dark:text-emerald-300">Gerealiseerde output</span>
+              <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Eigen opwek + grid-overschot</span>
+              <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ producedOutputText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Inzet eigen opwek</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ dedicatedWindText() }}</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ dedicatedWindInputText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Inzet grid-overschot</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Begrensd door elektrolyser</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ gridInputText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Elektrolyser benutting</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ balanceStore.hydrogenElectrolyzerCapacityGW() }} GW × 8.760u</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ electrolyzerUtilizationText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-l-4 border-red-500 bg-red-50 py-3 px-2 dark:border-red-700 dark:bg-red-900/20">
+              <span class="min-w-[140px] text-sm font-medium text-red-700 dark:text-red-300">Ongedekt tekort</span>
+              <span class="text-xs text-red-600/70 dark:text-red-400/70">Resterend vs doel</span>
+              <strong class="ml-auto text-base font-bold text-red-700 dark:text-red-300">{{ shortageText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-l-4 border-amber-500 bg-amber-50 py-3 px-2 dark:border-amber-700 dark:bg-amber-900/20">
+              <span class="min-w-[140px] text-sm font-medium text-amber-700 dark:text-amber-300">Overschot</span>
+              <span class="text-xs text-amber-600/70 dark:text-amber-400/70">Boven doel/capaciteit</span>
+              <strong class="ml-auto text-base font-bold text-amber-700 dark:text-amber-300">{{ surplusText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Grid-importlimiet</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">0 = onbeperkt</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ gridImportLimitText() }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kosten -->
+        <div>
+          <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kosten</h3>
+          <div class="space-y-2">
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Eigen opwek (wind)</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ dedicatedWindText() }} · {{ h2CostSettings().dedicatedWindLifetimeYears }}j</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2DedicatedWindAnnualCostText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Elektrolyser</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ electrolyzerCapacityText() }} · {{ h2CostSettings().electrolyzerLifetimeYears }}j</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2ElectrolyzerAnnualCostText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Grid inkoop</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ gridInputText() }} × {{ h2GridTransferPriceText() }}</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2GridPurchaseAnnualCostText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 px-2 dark:border-emerald-700 dark:bg-emerald-900/20">
+              <span class="min-w-[140px] text-sm font-medium text-emerald-700 dark:text-emerald-300">Jaarlijkse kosten totaal</span>
+              <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Opwek + elektrolyser + inkoop</span>
+              <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ h2TotalAnnualCostText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 px-2 dark:border-emerald-700 dark:bg-emerald-900/20">
+              <span class="min-w-[140px] text-sm font-medium text-emerald-700 dark:text-emerald-300">Kostprijs / kWh H2</span>
+              <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Totaal / {{ producedOutputText() }}</span>
+              <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ h2CostPerKwhText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Interne gridprijs</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Referentie inkoopprijs</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2GridTransferPriceText() }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+</section>

@@ -1,0 +1,372 @@
+<section class="mb-8" aria-label="Berekeningen">
+  <header class="flex flex-col gap-3 border-b border-slate-200 py-4 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Berekeningen</h2>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Levering, kosten, scenario-uitkomsten en batterijmodel. Wissel van tab om de details te bekijken.</p>
+    </div>
+    <button type="button" class="self-start rounded-none border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:self-auto" (click)="costsStore.resetTechnologyCostDefaults()">
+      Herstel kosten defaults
+    </button>
+  </header>
+
+  <!-- Tab navigation -->
+  <nav class="flex flex-wrap gap-1 border-b border-slate-100 px-4 dark:border-slate-800 md:px-5" role="tablist" aria-label="Berekening tabs">
+    <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'delivery'" class="border-b-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors" [class]="activeTab() === 'delivery' ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'" (click)="selectTab('delivery')">Levering</button>
+    <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'costs'" class="border-b-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors" [class]="activeTab() === 'costs' ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'" (click)="selectTab('costs')">Kosten</button>
+    <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'scenarios'" class="border-b-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors" [class]="activeTab() === 'scenarios' ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'" (click)="selectTab('scenarios')">Scenario's</button>
+    <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'battery'" class="border-b-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors" [class]="activeTab() === 'battery' ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'" (click)="selectTab('battery')">Batterij model</button>
+  </nav>
+
+  <!-- Tab panels -->
+  <div class="py-4">
+    @if (activeTab() === 'delivery') {
+      <div role="tabpanel" class="space-y-3">
+        <div class="py-4 border-t border-slate-200 dark:border-slate-800">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Systeemlevering</h3>
+          <div class="mt-3 space-y-1">
+            <p class="text-sm text-slate-700 dark:text-slate-300">Vraag: <strong class="text-slate-900 dark:text-slate-100">{{ costsStore.technologyDeliverySummary().demandText }}</strong></p>
+            <p class="text-sm text-slate-700 dark:text-slate-300">Achter de meter: <strong class="text-slate-900 dark:text-slate-100">{{ costsStore.technologyDeliverySummary().behindMeterText }}</strong></p>
+            <p class="text-sm text-slate-700 dark:text-slate-300">Geleverd: <strong class="text-emerald-600 dark:text-emerald-400">{{ costsStore.technologyDeliverySummary().deliveredText }}</strong></p>
+            <p class="text-sm text-slate-700 dark:text-slate-300">Grid vraag: <strong class="text-slate-900 dark:text-slate-100">{{ costsStore.technologyDeliverySummary().gridDemandText }}</strong></p>
+            <p class="text-sm text-slate-700 dark:text-slate-300">Naar Waterstof: <strong class="text-slate-900 dark:text-slate-100">{{ costsStore.technologyDeliverySummary().hydrogenText }}</strong></p>
+          </div>
+        </div>
+
+        <details class="group border-t border-slate-200 dark:border-slate-800">
+          <summary class="cursor-pointer list-none p-3 text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+            <span>Levering per technologie · {{ costsStore.technologyDeliveryRows().length }} items</span>
+            <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform inline-block">▼</span>
+          </summary>
+          <div class="border-t border-slate-100 p-3 dark:border-slate-800">
+            <div class="space-y-2">
+              @for (row of costsStore.technologyDeliveryRows(); track row.label) {
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-100 py-2 dark:border-slate-800">
+                  <span class="min-w-[160px] text-sm font-medium text-slate-700 dark:text-slate-300">{{ row.label }}</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">Geleverd: <strong class="text-emerald-600 dark:text-emerald-400">{{ row.deliveredText }}</strong></span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">Potentieel: {{ row.potentialText }}</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">Curtailment: {{ row.curtailmentText }}</span>
+                  @if (row.behindMeterText) {
+                    <span class="text-xs text-slate-500 dark:text-slate-400">ADM: {{ row.behindMeterText }}</span>
+                  }
+                  <span class="text-xs text-slate-500 dark:text-slate-400">Grid: {{ row.gridText }}</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">H2: {{ row.hydrogenText }}</span>
+                  @if (row.noteText) {
+                    <span class="basis-full text-[10px] text-slate-400 dark:text-slate-500">{{ row.noteText }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </details>
+
+        <div class="border-l-4 border-emerald-500 bg-emerald-50 py-4 px-3 dark:border-emerald-700 dark:bg-emerald-900/20">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Balans uitgangspunten</h3>
+          <div class="mt-3 space-y-2">
+            <div class="flex items-center gap-4">
+              <span class="min-w-[160px] text-sm text-slate-700 dark:text-slate-300">Overschot (publiek curtailment)</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ presentationStore.publicCurtailmentHoursText() }} uren</span>
+              <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ presentationStore.curtailmentTWhText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="min-w-[160px] text-sm text-slate-700 dark:text-slate-300">Naar waterstoffabrieken</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Systeem {{ presentationStore.hydrogenFromSystemGenerationTWhText() }} · Grid {{ presentationStore.hydrogenFromGridTWhText() }}</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ presentationStore.hydrogenToFactoriesTWhText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="min-w-[160px] text-sm text-slate-700 dark:text-slate-300">Curtailment na H2</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Resterend</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ presentationStore.hydrogenCurtailmentAfterDispatchTWhText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="min-w-[160px] text-sm text-slate-700 dark:text-slate-300">Tekort</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ presentationStore.balanceShortageHoursText() }} uren · backup {{ presentationStore.balanceShortagePeakGWText() }}</span>
+              <strong class="ml-auto text-base font-bold text-red-600 dark:text-red-400">{{ presentationStore.balanceShortageTWhText() }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'costs') {
+      <div role="tabpanel" class="space-y-3">
+        @for (row of costsStore.calculationAnnualSplitRows(); track row.label) {
+          @if (row.label.startsWith('Totaal kosten per jaar')) {
+            <div class="border-l-4 border-emerald-500 bg-emerald-50 py-4 px-3 dark:border-emerald-700 dark:bg-emerald-900/20">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">{{ row.label }}</h3>
+              <strong class="mt-1 block text-2xl font-bold text-emerald-700 dark:text-emerald-300">{{ row.priceText }}</strong>
+            </div>
+          }
+        }
+
+        <details class="group border-t border-slate-200 dark:border-slate-800" open>
+          <summary class="cursor-pointer list-none p-3 text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+            <span>Kostenverdeling per jaar</span>
+            <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform inline-block">▼</span>
+          </summary>
+          <div class="border-t border-slate-100 p-3 dark:border-slate-800">
+            <div class="space-y-2">
+              @for (row of costsStore.calculationAnnualSplitRows(); track row.label) {
+                @if (!row.label.startsWith('Totaal kosten per jaar')) {
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-100 py-2 dark:border-slate-800">
+                    <span class="min-w-[180px] text-sm font-medium text-slate-700 dark:text-slate-300">{{ row.label }}</span>
+                    <strong class="text-base font-bold text-slate-900 dark:text-slate-100">{{ row.priceText }}</strong>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ row.annualCostText }}/jr</span>
+                    <span class="basis-full text-[10px] text-slate-400 dark:text-slate-500">{{ row.noteText }}</span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </details>
+
+        <div class="space-y-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kostprijs per technologie</h3>
+          @for (row of costsStore.technologyUnitCostRows(); track row.label) {
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[160px] text-sm font-medium text-slate-700 dark:text-slate-300">{{ row.label }}</span>
+              <strong class="text-base font-bold text-slate-900 dark:text-slate-100">{{ row.priceText }}</strong>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ row.annualCostText }}/jr</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Pot: {{ row.potentialText }} · Curt: {{ row.curtailmentText }} · Gel: {{ row.deliveredText }}</span>
+              <span class="basis-full text-[10px] text-slate-400 dark:text-slate-500">{{ row.noteText }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'scenarios') {
+      <div role="tabpanel" class="space-y-2">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Scenario uitkomsten grid systeem</h3>
+        @for (scenario of costsStore.calculationScenarioRows(); track scenario.label) {
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-100 py-2 dark:border-slate-800">
+            <span class="min-w-[180px] text-sm font-medium text-slate-700 dark:text-slate-300">{{ scenario.label }}</span>
+            <strong class="text-base font-bold text-emerald-600 dark:text-emerald-400">{{ scenario.priceText }}</strong>
+            <span class="text-xs text-slate-500 dark:text-slate-400">{{ scenario.annualCostText }}/jr</span>
+            <span class="basis-full text-[10px] text-slate-400 dark:text-slate-500">{{ scenario.noteText }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeTab() === 'battery') {
+      <div role="tabpanel" class="space-y-4">
+        <div class="py-4 border-t border-slate-200 dark:border-slate-800">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Batterij kostmodel</h3>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Opslag en vermogen worden los afgerekend. De vermogens-elektro schaalt omlaag bij grotere cellen; 2 kWh is de referentie voor de elektronicafactor.</p>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Laadvermogen</span>
+            <div class="flex items-center gap-2">
+              <input #batteryChargePowerCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().chargePowerCapacityGW" (input)="costsStore.setBatteryCostModelChargePowerCapacityGW(batteryChargePowerCapacityInput.value)" aria-label="Batterij laadvermogen">
+              <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Ontlaadvermogen</span>
+            <div class="flex items-center gap-2">
+              <input #batteryDischargePowerCapacityInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().dischargePowerCapacityGW" (input)="costsStore.setBatteryCostModelDischargePowerCapacityGW(batteryDischargePowerCapacityInput.value)" aria-label="Batterij ontlaadvermogen">
+              <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Celprijs</span>
+            <div class="flex items-center gap-2">
+              <input #batteryCellPriceInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().cellPricePerKWhEur" (input)="costsStore.setBatteryCostModelCellPricePerKWhEur(batteryCellPriceInput.value)" aria-label="Celprijs per kilowattuur">
+              <span class="text-xs text-slate-500 dark:text-slate-400">EUR/kWh</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Power block</span>
+            <div class="flex items-center gap-2">
+              <input #batteryPowerElectronicsInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelPowerElectronicsInputValue()" (input)="costsStore.setBatteryCostModelPowerElectronicsCapexPerGW(batteryPowerElectronicsInput.value)" aria-label="Batterij elektro en PCS kosten per gigawatt">
+              <span class="text-xs text-slate-500 dark:text-slate-400">mln/GW</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Beheer / BMS</span>
+            <div class="flex items-center gap-2">
+              <input #batteryManageInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().manageCapexPerKWhAtReferenceCellEur" (input)="costsStore.setBatteryCostModelManageCapexPerKWhAtReferenceCell(batteryManageInput.value)" aria-label="Beheer en balancing kosten per kilowattuur bij referentiecel">
+              <span class="text-xs text-slate-500 dark:text-slate-400">EUR/kWh @ 2 kWh cel</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Celgrootte</span>
+            <div class="flex items-center gap-2">
+              <input #batteryCellSizeInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().cellSizeKWh" (input)="costsStore.setBatteryCostModelCellSizeKWh(batteryCellSizeInput.value)" aria-label="Gemiddelde celgrootte van het batterijpakket">
+              <span class="text-xs text-slate-500 dark:text-slate-400">kWh per cel</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Hal capaciteit</span>
+            <div class="flex items-center gap-2">
+              <input #batteryHallCapacityInput type="number" min="0" step="100" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().hallCapacityMWh" (input)="costsStore.setBatteryCostModelHallCapacityMWh(batteryHallCapacityInput.value)" aria-label="Netto megawattuur per hal bij HS/MS-station">
+              <span class="text-xs text-slate-500 dark:text-slate-400">MWh per hal</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Kosten per hal</span>
+            <div class="flex items-center gap-2">
+              <input #batteryHallCapexInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelHallCapexInputValue()" (input)="costsStore.setBatteryCostModelHallCapex(batteryHallCapexInput.value)" aria-label="Bouw- en automatiseringskosten per hal">
+              <span class="text-xs text-slate-500 dark:text-slate-400">mln EUR per hal</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Afschrijving</span>
+            <div class="flex items-center gap-2">
+              <input #batteryLifetimeInput type="number" min="0" step="0.5" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().lifetimeYears" (input)="costsStore.setBatteryCostModelLifetimeYears(batteryLifetimeInput.value)" aria-label="Afschrijftermijn batterij">
+              <span class="text-xs text-slate-500 dark:text-slate-400">jaar</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Rente</span>
+            <div class="flex items-center gap-2">
+              <input #batteryInterestRateInput type="number" min="0" max="30" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().interestRatePercent" (input)="costsStore.setBatteryCostModelInterestRatePercent(batteryInterestRateInput.value)" aria-label="Rente batterij">
+              <span class="text-xs text-slate-500 dark:text-slate-400">%/jr</span>
+            </div>
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">OPEX</span>
+            <div class="flex items-center gap-2">
+              <input #batteryOpexInput type="number" min="0" max="20" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.batteryCostModelSettings().opexPercentOfCapex" (input)="costsStore.setBatteryCostModelOpexPercent(batteryOpexInput.value)" aria-label="Jaarlijkse OPEX als percentage van CAPEX">
+              <span class="text-xs text-slate-500 dark:text-slate-400">% CAPEX/jr</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="border-l-4 border-emerald-500 bg-emerald-50 py-4 px-3 dark:border-emerald-700 dark:bg-emerald-900/20">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Uitkomst batterij kostmodel</h3>
+          <div class="mt-3 space-y-2">
+            @for (item of costsStore.batteryCostSummaryItems(); track item.label) {
+              <div class="flex items-center gap-4">
+                <span class="min-w-[200px] text-sm text-slate-700 dark:text-slate-300">{{ item.label }}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{ item.noteText }}</span>
+                <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ item.valueText }}</strong>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="py-4 border-t border-slate-200 dark:border-slate-800">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Batterij scenariovergelijking</h3>
+          <div class="mt-3 space-y-2">
+            @for (item of costsStore.batteryCostScenarioItems(); track item.label) {
+              <div class="flex items-center gap-4">
+                <span class="min-w-[200px] text-sm text-slate-700 dark:text-slate-300">{{ item.label }}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{ item.noteText }}</span>
+                <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ item.valueText }}</strong>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="py-4 border-t border-slate-200 dark:border-slate-800">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Kernenergie CfD</h3>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Capex en O&amp;M blijven in de tabel. CfD-periode stuurt de nucleaire CfD-prijs; bouwtijd en rente staan in de tabelrij hieronder.</p>
+          <label class="mt-3 flex max-w-xs flex-col gap-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">CfD-periode</span>
+            <div class="flex items-center gap-2">
+              <input #nuclearCfdPeriodInput type="number" min="0" step="0.5" class="w-full rounded-none border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="costsStore.nuclearCfdSettings().cfdPeriodYears" (input)="costsStore.setNuclearCfdPeriodYears(nuclearCfdPeriodInput.value)" aria-label="CfD-periode kernenergie">
+              <span class="text-xs text-slate-500 dark:text-slate-400">jaar</span>
+            </div>
+          </label>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Technologiekosten tabel - altijd zichtbaar onderaan -->
+  <div class="border-t border-slate-100 dark:border-slate-800">
+    <details class="group">
+      <summary class="cursor-pointer list-none py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+        <span>Technologiekosten per jaar · {{ costsStore.calculationTechnologyRows().length }} rijen</span>
+        <span class="ml-auto text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform inline-block">▼</span>
+      </summary>
+      <div class="border-t border-slate-200 py-4 dark:border-slate-800">
+        <div class="overflow-x-auto" aria-label="Technologiekosten per jaar">
+          <div class="calc-table min-w-[64rem]">
+            <div class="calc-table__head border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
+              <span>Technologie</span>
+              <span>Vermogen</span>
+              <span>Opwek / inzet</span>
+              <span>CAPEX</span>
+              <span>Vaste OPEX / jr</span>
+              <span>Rente</span>
+              <span>Afschrijving</span>
+              <span>Bouwtijd</span>
+              <span>Prijs / MWh</span>
+              <span>opwek Kosten / jaar</span>
+              <span>infra Kosten / jaar</span>
+              <span>prive Kosten / jaar</span>
+            </div>
+            @for (row of costsStore.calculationTechnologyRows(); track row.label) {
+              <div class="calc-table__row border-b border-slate-200 bg-white text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                <span>
+                  {{ row.label }}
+                  @if (row.noteText; as noteText) {
+                    <small class="block text-xs text-slate-500 dark:text-slate-400">{{ noteText }}</small>
+                  }
+                </span>
+                <span>{{ row.capacityText }}</span>
+                <span>{{ row.energyText }}</span>
+                @if (row.costFromModel) {
+                  <span class="text-slate-400 dark:text-slate-500">—</span>
+                  <span class="text-slate-400 dark:text-slate-500">—</span>
+                  <span class="text-slate-400 dark:text-slate-500">—</span>
+                  <span class="text-slate-400 dark:text-slate-500">—</span>
+                  <span class="text-slate-400 dark:text-slate-500">—</span>
+                } @else if (row.costKey === 'borssele') {
+                  <span class="text-slate-400 dark:text-slate-500">0 mln/GW</span>
+                  <label class="flex flex-col gap-0.5">
+                    <input #opexInput type="number" min="0" step="0.1" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.opexInputValue" (input)="costsStore.setTechnologyOpex(row.costKey, opexInput.value)" [attr.aria-label]="'OPEX voor ' + row.label">
+                    <small class="text-xs text-slate-500 dark:text-slate-400">{{ row.costUnitText }}/jr</small>
+                  </label>
+                  <span class="text-slate-400 dark:text-slate-500">0 %/jr</span>
+                  <span class="text-slate-400 dark:text-slate-500">n.v.t.</span>
+                  <span class="text-slate-400 dark:text-slate-500">0 jr</span>
+                } @else {
+                  <label class="flex flex-col gap-0.5">
+                    <input #capexInput type="number" min="0" step="0.1" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.capexInputValue" (input)="costsStore.setTechnologyCapex(row.costKey, capexInput.value)" [attr.aria-label]="'CAPEX voor ' + row.label">
+                    <small class="text-xs text-slate-500 dark:text-slate-400">{{ row.costUnitText }}</small>
+                  </label>
+                  <label class="flex flex-col gap-0.5">
+                    <input #opexInput type="number" min="0" step="0.1" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.opexInputValue" (input)="costsStore.setTechnologyOpex(row.costKey, opexInput.value)" [attr.aria-label]="'OPEX voor ' + row.label">
+                    <small class="text-xs text-slate-500 dark:text-slate-400">{{ row.costUnitText }}/jr</small>
+                  </label>
+                  @if (row.costKey === 'nuclear') {
+                    <label class="flex flex-col gap-0.5">
+                      <input #nucRateInput type="number" min="0" max="30" step="0.1" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.interestRateInputValue" (input)="costsStore.setNuclearInterestRatePercent(nucRateInput.value)" aria-label="Rente kernenergie CfD">
+                      <small class="text-xs text-slate-500 dark:text-slate-400">%/jr</small>
+                    </label>
+                  } @else {
+                    <label class="flex flex-col gap-0.5">
+                      <input #rateInput type="number" min="0" max="30" step="0.1" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.interestRateInputValue" (input)="costsStore.setTechnologyInterestRate(row.costKey, rateInput.value)" [attr.aria-label]="'Rente voor ' + row.label">
+                      <small class="text-xs text-slate-500 dark:text-slate-400">%/jr</small>
+                    </label>
+                  }
+                  <label class="flex flex-col gap-0.5">
+                    <input #lifetimeInput type="number" min="1" step="0.5" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.lifetimeInputValue" (input)="costsStore.setTechnologyLifetimeYears(row.costKey, lifetimeInput.value)" [attr.aria-label]="'Afschrijving voor ' + row.label">
+                    <small class="text-xs text-slate-500 dark:text-slate-400">jaar</small>
+                  </label>
+                  @if (row.costKey === 'nuclear') {
+                    <label class="flex flex-col gap-0.5">
+                      <input #buildTimeInput type="number" min="0" step="0.5" class="w-full max-w-[6.5rem] rounded-none border border-slate-300 bg-slate-50 px-2 py-1 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="row.buildTimeInputValue" (input)="costsStore.setNuclearBuildTimeYears(buildTimeInput.value)" aria-label="Bouwtijd kernenergie">
+                      <small class="text-xs text-slate-500 dark:text-slate-400">jaar</small>
+                    </label>
+                  } @else {
+                    <span class="text-slate-400 dark:text-slate-500">0 jr</span>
+                  }
+                }
+                <span>{{ row.pricePerMWhText }}</span>
+                <strong class="text-slate-900 dark:text-slate-100">{{ row.annualGenerationCostText }}</strong>
+                <strong class="text-slate-900 dark:text-slate-100">{{ row.annualInfraCostText }}</strong>
+                <strong class="text-slate-900 dark:text-slate-100">{{ row.annualPrivateCostText }}</strong>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
