@@ -19,7 +19,7 @@ export class AssumptionsQaService {
     const normalizedQuestion = normalize(question);
     if (!normalizedQuestion) {
       return {
-        answer: 'Stel een vraag over aannames, bijvoorbeeld: waarom is de winterreserve 50% of hoe wordt ct/kWh voor huishoudens opgebouwd?',
+        answer: 'Stel een vraag over aannames, bijvoorbeeld: hoe werkt de dynamische 14-daagse private reserve of hoe wordt ct/kWh voor huishoudens opgebouwd?',
         confidence: 'laag',
         matchedEntries: [],
       };

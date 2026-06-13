@@ -142,6 +142,13 @@ export class EnergyDashboardPresentationStore {
     return `${statNumberFormatter.format(twh)} TWh`;
   });
 
+  readonly totalCurtailmentTWhText = computed(() => {
+    const pub = this.dashboardStore.balanceModel().publicCurtailmentValues.reduce((sum, v) => sum + v, 0);
+    const priv = this.dashboardStore.balanceModel().privateCurtailmentValues.reduce((sum, v) => sum + v, 0);
+    const twh = (pub + priv) / 1_000_000_000;
+    return `${statNumberFormatter.format(twh)} TWh`;
+  });
+
   readonly publicCurtailmentHoursText = computed(() => {
     const hours = this.dashboardStore.balanceModel().publicCurtailmentValues.reduce((sum, value) => {
       return value > 0 ? sum + 1 : sum;
@@ -198,6 +205,112 @@ export class EnergyDashboardPresentationStore {
       toItem('Elektriciteit', ELECTRICITY_COLOR, electricityTotal),
       toItem('Warmtepompen', GAS_COLOR, heatPumpTotal),
       toItem('Vervoer', TRANSPORT_COLOR, transportTotal),
+    ];
+  });
+
+  readonly windowGenerationBreakdown = computed<DemandSummaryItem[]>(() => {
+    const activeDataset = this.viewStore.activeDataset();
+    const isGenerationDataset = ['generationtotal', 'solar', 'windland', 'windzee'].includes(activeDataset);
+    if (!isGenerationDataset) {
+      return [];
+    }
+
+    const timestamps = this.dataStore.timestamps();
+    if (!timestamps.length) {
+      return [];
+    }
+
+    const xWindow = this.viewStore.xWindow();
+    let startIdx = 0;
+    let endIdx = timestamps.length - 1;
+    if (xWindow) {
+      for (let i = 0; i < timestamps.length; i++) {
+        if (timestamps[i] >= xWindow.min) {
+          startIdx = i;
+          break;
+        }
+      }
+      for (let i = timestamps.length - 1; i >= 0; i--) {
+        if (timestamps[i] <= xWindow.max) {
+          endIdx = i;
+          break;
+        }
+      }
+    }
+
+    const solarValues = this.dashboardStore.solarDisplayValues();
+    const windlandValues = this.dashboardStore.windlandDisplayValues();
+    const windzeeValues = this.dashboardStore.windzeeDisplayValues();
+
+    let solarSum = 0;
+    let windlandSum = 0;
+    let windzeeSum = 0;
+    for (let i = startIdx; i <= endIdx; i++) {
+      solarSum += solarValues[i] ?? 0;
+      windlandSum += windlandValues[i] ?? 0;
+      windzeeSum += windzeeValues[i] ?? 0;
+    }
+    const totalSum = solarSum + windlandSum + windzeeSum;
+    const hours = endIdx - startIdx + 1;
+
+    return [
+      { label: 'Zon', color: SOLAR_COLOR, totalText: `${statNumberFormatter.format(solarSum / 1_000)} TWh`, shareText: `${statNumberFormatter.format(totalSum > 0 ? (solarSum / totalSum) * 100 : 0)}%` },
+      { label: 'Windland', color: '#3f8cff', totalText: `${statNumberFormatter.format(windlandSum / 1_000)} TWh`, shareText: `${statNumberFormatter.format(totalSum > 0 ? (windlandSum / totalSum) * 100 : 0)}%` },
+      { label: 'Windzee', color: '#9d7cff', totalText: `${statNumberFormatter.format(windzeeSum / 1_000)} TWh`, shareText: `${statNumberFormatter.format(totalSum > 0 ? (windzeeSum / totalSum) * 100 : 0)}%` },
+      { label: `Totaal (${hours}u)`, color: TOTAL_COLOR, totalText: `${statNumberFormatter.format(totalSum / 1_000)} TWh`, shareText: `gem. ${statNumberFormatter.format(totalSum / hours)} GW` },
+    ];
+  });
+
+  readonly windowConsumptionBreakdown = computed<DemandSummaryItem[]>(() => {
+    const activeDataset = this.viewStore.activeDataset();
+    const isConsumptionDataset = ['totaldemand', 'electricity', 'gas', 'transport'].includes(activeDataset);
+    if (!isConsumptionDataset) {
+      return [];
+    }
+
+    const timestamps = this.dataStore.timestamps();
+    if (!timestamps.length) {
+      return [];
+    }
+
+    const xWindow = this.viewStore.xWindow();
+    let startIdx = 0;
+    let endIdx = timestamps.length - 1;
+    if (xWindow) {
+      for (let i = 0; i < timestamps.length; i++) {
+        if (timestamps[i] >= xWindow.min) {
+          startIdx = i;
+          break;
+        }
+      }
+      for (let i = timestamps.length - 1; i >= 0; i--) {
+        if (timestamps[i] <= xWindow.max) {
+          endIdx = i;
+          break;
+        }
+      }
+    }
+
+    const electricityValues = this.dataStore.valuesByDataset().electricity ?? [];
+    const heatPumpValues = this.dashboardStore.gasElectricValues();
+    const transportValues = this.dashboardStore.transportElectricValues();
+
+    let electricitySum = 0;
+    let heatPumpSum = 0;
+    let transportSum = 0;
+    for (let i = startIdx; i <= endIdx; i++) {
+      electricitySum += electricityValues[i] ?? 0;
+      heatPumpSum += heatPumpValues[i] ?? 0;
+      transportSum += transportValues[i] ?? 0;
+    }
+    const totalSum = electricitySum + heatPumpSum + transportSum;
+    const hours = endIdx - startIdx + 1;
+
+    return [
+      { label: 'Elektriciteit', color: ELECTRICITY_COLOR, totalText: `${statNumberFormatter.format(electricitySum / 1_000_000_000)} TWh`, shareText: `${statNumberFormatter.format(totalSum > 0 ? (electricitySum / totalSum) * 100 : 0)}%` },
+      { label: 'Warmtepompen', color: GAS_COLOR, totalText: `${statNumberFormatter.format(heatPumpSum / 1_000_000_000)} TWh`, shareText: `${statNumberFormatter.format(totalSum > 0 ? (heatPumpSum / totalSum) * 100 : 0)}%` },
+      { label: 'Vervoer', color: TRANSPORT_COLOR, totalText: `${statNumberFormatter.format(transportSum / 1_000_000_000)} TWh`, shareText: `${statNumberFormatter.format(totalSum > 0 ? (transportSum / totalSum) * 100 : 0)}%` },
+      { label: `Totaal (${hours}u)`, color: TOTAL_COLOR, totalText: `${statNumberFormatter.format(totalSum / 1_000_000_000)} TWh`, shareText: `gem. ${statNumberFormatter.format(totalSum / 1_000_000 / hours)} GW` },
     ];
   });
 

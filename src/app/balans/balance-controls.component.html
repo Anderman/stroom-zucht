@@ -75,7 +75,7 @@
         </label>
       </div>
       <label class="mt-2 flex flex-col gap-1">
-        <span class="text-[10px] text-slate-500 dark:text-slate-400">Privé-vraag aandeel: <strong class="text-slate-700 dark:text-slate-300">{{ privateDemandSharePercent() }}%</strong></span>
+        <span class="text-[10px] text-slate-500 dark:text-slate-400">Huishoudens/bedrijven met PV en batterij: <strong class="text-slate-700 dark:text-slate-300">{{ privateDemandSharePercent() }}%</strong></span>
         <div class="flex items-center gap-2">
           <input #privateDemandShareSlider type="range" min="0" max="100" step="1" class="w-full accent-emerald-600" [value]="privateDemandSharePercent()" (input)="privateDemandSharePercentChange.emit(privateDemandShareSlider.value)">
         </div>
@@ -205,13 +205,13 @@
         Ruwe balans = totale opwek − vraag.<br>
         Positief = surplus, negatief = tekort.
       </p>
-      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Privé-vraag aandeel</strong><br>
-        Het ingestelde percentage bepaalt welk deel van de uurvraag eerst door privé-opwek en privé-opslag wordt bediend.
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Huishoudens/bedrijven met PV en batterij</strong><br>
+        Het ingestelde percentage bepaalt welk deel van de bevolking eigen zonnepanelen en een batterij heeft. Hun vraag wordt eerst uit eigen opwek en opslag bediend.
       </p>
       <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Laadstrategie bij surplus</strong><br>
         Privé-surplus gaat eerst naar de privébatterij en kan daarna naar de publieke kant.<br>
-        De privébatterij verkoopt alleen het deel dat anders (na 24 uur vooruitkijken) als <em>curtailment</em> zou worden weggegooid.<br>
-        Publiek surplus gaat eerst naar de publieke batterij en kan daarna de privébatterij bijvullen tot de seizoensreserve.<br>
+        Voor de privébatterij gebruikt het model een 14-daags vooruitvenster en rekent daarna achterwaarts hoeveel laadniveau nodig is om toekomstige tekorturen op te vangen.<br>
+        Publiek surplus gaat eerst naar de publieke batterij en kan daarna de privébatterij bijvullen richting die dynamische benodigde lading.<br>
         De private netlimiet begrenst per uur de som van publiek→privé laden en privé import voor verbruik.<br>
         Als daarna nog surplus overblijft, wordt eerst publiek teruggeregeld in deze volgorde: windland → windzee → publieke zon → kern (kern blijft minimaal 50% online).<br>
         Pas als dat niet genoeg is, wordt privé teruggeregeld.<br>
@@ -219,15 +219,14 @@
         PV-naar-elektrolyse blijft begrensd op 35 GW/uur. Wat daarna overblijft is <em>curtailment</em> (afgeknepen opwek).
       </p>
       <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Ontlaadstrategie bij tekort</strong><br>
-        Privé gebruikt eerst eigen opwek en daarna eigen batterij (met seizoensreserve als ondergrens in normale uren).<br>
+        Privé gebruikt eerst eigen opwek en daarna eigen batterij; als dat niet genoeg is volgt import uit het publieke net.<br>
         Bij een publiek tekort ontlaadt eerst de privébatterij richting de publieke kant, daarna pas de publieke batterij.<br>
-        In nood kan de reserve alsnog worden aangesproken als er anders tekort overblijft.<br>
         Wat dan nog overblijft is de <em>restbalans</em> (ongedekt tekort).
       </p>
-      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Seizoensreserve privébatterij</strong><br>
-        Oktober t/m februari: minimaal 50% SOC.<br>
-        Maart t/m september: minimaal 20% SOC.<br>
-        Publiek overschot kan de privébatterij tot deze reservegrens aanvullen.
+      <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dynamische private reserve (14 dagen)</strong><br>
+        De private batterij probeert minimaal 20% SoC aan te houden als buffer.<br>
+        Het model bepaalt per uur aanvullend een benodigde private SoC op basis van verwachte tekorturen in de komende 14 dagen.<br>
+        Bij overschoturen wordt die behoefte zo laat mogelijk ingevuld met beschikbare laadkansen.
       </p>
       <p><strong class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Max private netbelasting (GW)</strong><br>
         Instelbaar in de batterijsectie (default 35 GW).<br>

@@ -4,7 +4,13 @@
     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Configureer het aparte waterstofsysteem: productie, gereserveerde offshore wind, elektrolysercapaciteit en de koppeling met grid-overschot.</p>
   </header>
 
-  <div class="grid divide-y divide-slate-100 dark:divide-slate-800 md:grid-cols-2 md:divide-y-0 lg:grid-cols-3">
+  <p class="mb-4">
+    <button type="button" class="text-sm font-medium text-emerald-600 underline underline-offset-4 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300" (click)="openCbsDialog()">
+      Bron waterstof: bekijk CBS uitsnede
+    </button>
+  </p>
+
+  <div class="grid divide-y divide-slate-100 dark:divide-slate-800 md:grid-cols-2 md:divide-y-0">
     <label class="flex flex-col gap-1.5 p-4 md:p-5">
       <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Outputdoel</span>
       <div class="flex items-center gap-2">
@@ -14,8 +20,10 @@
     </label>
 
     <label class="flex flex-col gap-1.5 p-4 md:p-5">
-      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Elektrolyserrendement</span>
-      <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Elektrolyser</span>
+      <div class="flex items-center gap-1.5">
+        <input #electrolyzerInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenElectrolyzerCapacityGW()" (input)="balanceStore.setHydrogenElectrolyzerCapacityGW(electrolyzerInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
         <input #efficiencyInput type="number" min="1" max="100" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.electrolyzerEfficiencyPercent()" (input)="balanceStore.setElectrolyzerEfficiencyPercent(efficiencyInput.value)">
         <span class="text-xs text-slate-500 dark:text-slate-400">%</span>
       </div>
@@ -23,33 +31,29 @@
 
     <label class="flex flex-col gap-1.5 p-4 md:p-5">
       <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Offshore wind H2</span>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5">
         <input #dedicatedWindInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenDedicatedOffshoreWindCapacityGW()" (input)="balanceStore.setHydrogenDedicatedOffshoreWindCapacityGW(dedicatedWindInput.value)">
         <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+        <input #dedicatedWindFullLoadHoursInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenDedicatedOffshoreWindFullLoadHours()" (input)="balanceStore.setHydrogenDedicatedOffshoreWindFullLoadHours(dedicatedWindFullLoadHoursInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">uur/jr</span>
       </div>
     </label>
 
     <label class="flex flex-col gap-1.5 p-4 md:p-5">
-      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Elektrolyser</span>
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Batterij opslag</span>
       <div class="flex items-center gap-2">
-        <input #electrolyzerInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenElectrolyzerCapacityGW()" (input)="balanceStore.setHydrogenElectrolyzerCapacityGW(electrolyzerInput.value)">
-        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+        <input #batteryInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenBatteryCapacityGWh()" (input)="balanceStore.setHydrogenBatteryCapacityGWh(batteryInput.value)">
+        <span class="text-xs text-slate-500 dark:text-slate-400">GWh</span>
       </div>
     </label>
 
     <label class="flex flex-col gap-1.5 p-4 md:p-5">
-      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Grid-importlimiet</span>
-      <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Grid-limieten</span>
+      <div class="flex items-center gap-1.5">
         <input #gridImportInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenGridImportLimitGW()" (input)="balanceStore.setHydrogenGridImportLimitGW(gridImportInput.value)">
-        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
-      </div>
-    </label>
-
-    <label class="flex flex-col gap-1.5 p-4 md:p-5">
-      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Grid-exportlimiet</span>
-      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-500 dark:text-slate-400">in</span>
         <input #gridExportInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="balanceStore.hydrogenGridExportLimitGW()" (input)="balanceStore.setHydrogenGridExportLimitGW(gridExportInput.value)">
-        <span class="text-xs text-slate-500 dark:text-slate-400">GW</span>
+        <span class="text-xs text-slate-500 dark:text-slate-400">uit</span>
       </div>
     </label>
   </div>
@@ -60,7 +64,7 @@
       Kostenparameters · {{ h2TotalAnnualCostText() }}
     </summary>
     <div class="border-t border-slate-200 py-4 dark:border-slate-800">
-      <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">Alle waarden zijn per GW. De totale H2-systeemkosten bestaan uit capex, opex en ingekochte grid-kWh.</p>
+      <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">Wind en elektrolyser per GW, batterij per GWh. De totale H2-systeemkosten bestaan uit capex, opex en ingekochte grid-kWh.</p>
 
       <div class="overflow-x-auto">
         <div class="min-w-[40rem]">
@@ -89,6 +93,15 @@
             <input #h2ElLifetimeInput type="number" min="1" step="0.5" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().electrolyzerLifetimeYears" (input)="costsStore.setHydrogenElectrolyzerLifetimeYears(h2ElLifetimeInput.value)">
             <input #h2ElInterestInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().electrolyzerInterestRatePercent" (input)="costsStore.setHydrogenElectrolyzerInterestRatePercent(h2ElInterestInput.value)">
             <strong class="text-right text-slate-900 dark:text-slate-100">{{ h2ElectrolyzerAnnualCostText() }}</strong>
+          </div>
+
+          <div class="hydrogen-cost-table__row rounded-b-none border-x border-b border-slate-200 bg-white text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            <strong class="text-slate-900 dark:text-slate-100">Batterij</strong>
+            <input #h2BatCapexInput type="number" min="0" step="10" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().batteryCapexPerGWhEur / 1_000_000" (input)="costsStore.setHydrogenBatteryCapexPerGWh(h2BatCapexInput.value)">
+            <input #h2BatOpexInput type="number" min="0" step="1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().batteryOpexPerGWhEur / 1_000_000" (input)="costsStore.setHydrogenBatteryOpexPerGWh(h2BatOpexInput.value)">
+            <input #h2BatLifetimeInput type="number" min="1" step="0.5" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().batteryLifetimeYears" (input)="costsStore.setHydrogenBatteryLifetimeYears(h2BatLifetimeInput.value)">
+            <input #h2BatInterestInput type="number" min="0" step="0.1" class="w-full rounded-none border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-500" [value]="h2CostSettings().batteryInterestRatePercent" (input)="costsStore.setHydrogenBatteryInterestRatePercent(h2BatInterestInput.value)">
+            <strong class="text-right text-slate-900 dark:text-slate-100">{{ h2BatteryAnnualCostText() }}</strong>
           </div>
         </div>
       </div>
@@ -134,6 +147,16 @@
               <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ dedicatedWindInputText() }}</strong>
             </div>
             <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Wind naar opslag</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ batteryCapacityText() }} capaciteit</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ windToBatteryText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Uit opslag</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Eindniveau {{ batteryFinalSoCText() }}</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ batteryToElectrolyserText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
               <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Inzet grid-overschot</span>
               <span class="text-xs text-slate-500 dark:text-slate-400">Begrensd door elektrolyser</span>
               <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ gridInputText() }}</strong>
@@ -176,19 +199,29 @@
               <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2ElectrolyzerAnnualCostText() }}</strong>
             </div>
             <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
+              <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Batterij</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ batteryCapacityText() }} · {{ h2CostSettings().batteryLifetimeYears }}j</span>
+              <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2BatteryAnnualCostText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
               <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Grid inkoop</span>
               <span class="text-xs text-slate-500 dark:text-slate-400">{{ gridInputText() }} × {{ h2GridTransferPriceText() }}</span>
               <strong class="ml-auto text-base font-bold text-slate-900 dark:text-slate-100">{{ h2GridPurchaseAnnualCostText() }}</strong>
             </div>
             <div class="flex items-center gap-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 px-2 dark:border-emerald-700 dark:bg-emerald-900/20">
               <span class="min-w-[140px] text-sm font-medium text-emerald-700 dark:text-emerald-300">Jaarlijkse kosten totaal</span>
-              <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Opwek + elektrolyser + inkoop</span>
+              <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Wind + elektrolyser + batterij + inkoop</span>
               <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ h2TotalAnnualCostText() }}</strong>
             </div>
             <div class="flex items-center gap-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 px-2 dark:border-emerald-700 dark:bg-emerald-900/20">
               <span class="min-w-[140px] text-sm font-medium text-emerald-700 dark:text-emerald-300">Kostprijs / kWh H2</span>
               <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Totaal / {{ producedOutputText() }}</span>
               <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ h2CostPerKwhText() }}</strong>
+            </div>
+            <div class="flex items-center gap-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 px-2 dark:border-emerald-700 dark:bg-emerald-900/20">
+              <span class="min-w-[140px] text-sm font-medium text-emerald-700 dark:text-emerald-300">Kostprijs / kg H2</span>
+              <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">1 kg = 33,33 kWh (LHV)</span>
+              <strong class="ml-auto text-base font-bold text-emerald-700 dark:text-emerald-300">{{ h2CostPerKgText() }}</strong>
             </div>
             <div class="flex items-center gap-4 border-b border-slate-100 py-2 dark:border-slate-800">
               <span class="min-w-[140px] text-sm font-medium text-slate-700 dark:text-slate-300">Interne gridprijs</span>
@@ -201,3 +234,22 @@
     </div>
   </details>
 </section>
+
+@if (isCbsDialogOpen()) {
+  <div class="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm" (click)="closeCbsDialog()" aria-hidden="true"></div>
+  <section class="fixed left-1/2 top-1/2 z-30 w-[92vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-none border border-slate-200 bg-white p-5 shadow-none dark:border-slate-700 dark:bg-slate-900" role="dialog" aria-modal="true" aria-label="CBS waterstof afbeelding">
+    <div class="mb-4 flex items-start justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">CBS waterstof</h2>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Vergrote weergave van de CBS-uitsnede met directe link naar de brontabel.</p>
+      </div>
+      <button type="button" class="rounded-none border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" (click)="closeCbsDialog()">Sluiten</button>
+    </div>
+    <img class="w-full rounded-none border border-slate-100 bg-white object-contain dark:border-slate-800" [src]="cbsWaterstofImageUrl" alt="CBS uitsnede waterstof" />
+    <div class="mt-4 flex justify-end">
+      <a class="rounded-none border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" [href]="cbsWaterstofSourceUrl" target="_blank" rel="noreferrer noopener">
+        Open CBS StatLine
+      </a>
+    </div>
+  </section>
+}

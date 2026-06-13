@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 import { AssumptionsQaService } from './assumptions-qa.service';
 import { ASSUMPTIONS_REGISTRY } from './assumptions.registry';
@@ -27,6 +28,7 @@ type FaqGroup = {
 })
 export class ExplanationPageComponent {
   private readonly qaService = inject(AssumptionsQaService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly assumptions = ASSUMPTIONS_REGISTRY;
   protected readonly globalPictureItems: readonly GlobalPictureItem[] = GLOBAL_PICTURE_ITEMS;
@@ -190,6 +192,14 @@ export class ExplanationPageComponent {
     return `Match: ${confidence}`;
   }
 
+  protected renderText(text: string): SafeHtml {
+    const linked = text.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noreferrer noopener" class="text-emerald-600 underline underline-offset-2 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">$1</a>',
+    );
+    return this.sanitizer.bypassSecurityTrustHtml(linked);
+  }
+
   private matchesSearch(entry: AssumptionEntry, search: string): boolean {
     const haystack = [
       entry.title,
@@ -216,6 +226,7 @@ export class ExplanationPageComponent {
     const verbruikVervoerIds = new Set([
       'faq-transport-kwh-calculation',
       'faq-transport-ev-factor-375',
+      'faq-kosten-bev-vs-benzine',
     ]);
 
     const verbruikElektraIds = new Set([
@@ -229,7 +240,8 @@ export class ExplanationPageComponent {
       'faq-battery-cell-price',
       'faq-household-price',
       'faq-offshore-existing-connection-costs',
-      'faq-kosten-bev-vs-benzine',
+      'faq-infra-cost-split',
+      'faq-why-high-kwh-price',
     ]);
 
     const balansIds = new Set([
@@ -237,6 +249,13 @@ export class ExplanationPageComponent {
       'faq-private-grid-limit',
       'faq-v2g-modeling',
       'faq-v2g-1twh-origin',
+      'faq-balance-dispatch-explained',
+      'faq-why-public-private-split',
+      'faq-why-private-grid-limit',
+      'faq-why-seasonal-reserve',
+      'faq-why-24h-lookahead',
+      'faq-why-convergence-loop',
+      'faq-curtailment-priority-order',
     ]);
 
     if (verbruikWarmteIds.has(faqId)) {

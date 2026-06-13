@@ -63,6 +63,10 @@ type HydrogenSystemCostSettings = {
   electrolyzerOpexPerGWEur: number;
   electrolyzerLifetimeYears: number;
   electrolyzerInterestRatePercent: number;
+  batteryCapexPerGWhEur: number;
+  batteryOpexPerGWhEur: number;
+  batteryLifetimeYears: number;
+  batteryInterestRatePercent: number;
 };
 
 type TechnologyDeliveryRow = {
@@ -116,6 +120,10 @@ export class EnergyCostsStore {
   private static readonly DEFAULT_H2_ELECTROLYZER_OPEX_PER_GW_EUR = 20_000_000;
   private static readonly DEFAULT_H2_ELECTROLYZER_LIFETIME_YEARS = 30;
   private static readonly DEFAULT_H2_ELECTROLYZER_INTEREST_RATE_PERCENT = 5;
+  private static readonly DEFAULT_H2_BATTERY_CAPEX_PER_GWH_EUR = 200_000_000;
+  private static readonly DEFAULT_H2_BATTERY_OPEX_PER_GWH_EUR = 5_000_000;
+  private static readonly DEFAULT_H2_BATTERY_LIFETIME_YEARS = 15;
+  private static readonly DEFAULT_H2_BATTERY_INTEREST_RATE_PERCENT = 5;
 
   private readonly balanceStore = inject(EnergyBalanceStore);
   private readonly dashboardStore = inject(EnergyDashboardStore);
@@ -132,6 +140,10 @@ export class EnergyCostsStore {
     electrolyzerOpexPerGWEur: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_OPEX_PER_GW_EUR,
     electrolyzerLifetimeYears: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_LIFETIME_YEARS,
     electrolyzerInterestRatePercent: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_INTEREST_RATE_PERCENT,
+    batteryCapexPerGWhEur: EnergyCostsStore.DEFAULT_H2_BATTERY_CAPEX_PER_GWH_EUR,
+    batteryOpexPerGWhEur: EnergyCostsStore.DEFAULT_H2_BATTERY_OPEX_PER_GWH_EUR,
+    batteryLifetimeYears: EnergyCostsStore.DEFAULT_H2_BATTERY_LIFETIME_YEARS,
+    batteryInterestRatePercent: EnergyCostsStore.DEFAULT_H2_BATTERY_INTEREST_RATE_PERCENT,
   });
 
   readonly calculationTechnologyRows = computed<CalculationTechnologyRow[]>(() => {
@@ -630,6 +642,7 @@ export class EnergyCostsStore {
     const hydrogenSystem = this.dashboardStore.hydrogenSystem();
     const dedicatedWindCapacityGW = this.balanceStore.hydrogenDedicatedOffshoreWindCapacityGW();
     const electrolyzerCapacityGW = this.balanceStore.hydrogenElectrolyzerCapacityGW();
+    const batteryCapacityGWh = this.balanceStore.hydrogenBatteryCapacityGWh();
 
     const dedicatedWindAnnualCost = getAnnualTechnologyCost(
       dedicatedWindCapacityGW,
@@ -645,6 +658,13 @@ export class EnergyCostsStore {
       settings.electrolyzerLifetimeYears,
       settings.electrolyzerInterestRatePercent,
     );
+    const batteryAnnualCost = getAnnualTechnologyCost(
+      batteryCapacityGWh,
+      settings.batteryCapexPerGWhEur,
+      settings.batteryOpexPerGWhEur,
+      settings.batteryLifetimeYears,
+      settings.batteryInterestRatePercent,
+    );
 
     const gridCostBasis = this.getGridSystemCostBasis();
     const gridTransferPriceEurPerKWh = gridCostBasis.usefulGeneratedKWh > 0
@@ -652,7 +672,7 @@ export class EnergyCostsStore {
       : 0;
     const gridPurchaseAnnualCost = hydrogenSystem.gridInputKWh * gridTransferPriceEurPerKWh;
 
-    const totalAnnualCost = dedicatedWindAnnualCost + electrolyzerAnnualCost + gridPurchaseAnnualCost;
+    const totalAnnualCost = dedicatedWindAnnualCost + electrolyzerAnnualCost + batteryAnnualCost + gridPurchaseAnnualCost;
     const producedOutputKWh = hydrogenSystem.producedOutputKWh;
     const costPerProducedKWhEur = producedOutputKWh > 0
       ? totalAnnualCost / producedOutputKWh
@@ -661,6 +681,7 @@ export class EnergyCostsStore {
     return {
       dedicatedWindAnnualCost,
       electrolyzerAnnualCost,
+      batteryAnnualCost,
       gridPurchaseAnnualCost,
       gridTransferPriceEurPerKWh,
       totalAnnualCost,
@@ -842,6 +863,34 @@ export class EnergyCostsStore {
     }));
   }
 
+  setHydrogenBatteryCapexPerGWh(value: string): void {
+    this.hydrogenSystemCostSettings.update(currentSettings => ({
+      ...currentSettings,
+      batteryCapexPerGWhEur: this.parseMillionEuroInput(value, EnergyCostsStore.DEFAULT_H2_BATTERY_CAPEX_PER_GWH_EUR),
+    }));
+  }
+
+  setHydrogenBatteryOpexPerGWh(value: string): void {
+    this.hydrogenSystemCostSettings.update(currentSettings => ({
+      ...currentSettings,
+      batteryOpexPerGWhEur: this.parseMillionEuroInput(value, EnergyCostsStore.DEFAULT_H2_BATTERY_OPEX_PER_GWH_EUR),
+    }));
+  }
+
+  setHydrogenBatteryLifetimeYears(value: string): void {
+    this.hydrogenSystemCostSettings.update(currentSettings => ({
+      ...currentSettings,
+      batteryLifetimeYears: this.parseNonNegativeNumber(value, EnergyCostsStore.DEFAULT_H2_BATTERY_LIFETIME_YEARS),
+    }));
+  }
+
+  setHydrogenBatteryInterestRatePercent(value: string): void {
+    this.hydrogenSystemCostSettings.update(currentSettings => ({
+      ...currentSettings,
+      batteryInterestRatePercent: this.parseNonNegativeNumber(value, EnergyCostsStore.DEFAULT_H2_BATTERY_INTEREST_RATE_PERCENT),
+    }));
+  }
+
   setNuclearBuildTimeYears(value: string): void {
     this.nuclearCfdSettings.update(currentSettings => ({
       ...currentSettings,
@@ -1008,6 +1057,10 @@ export class EnergyCostsStore {
       electrolyzerOpexPerGWEur: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_OPEX_PER_GW_EUR,
       electrolyzerLifetimeYears: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_LIFETIME_YEARS,
       electrolyzerInterestRatePercent: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_INTEREST_RATE_PERCENT,
+      batteryCapexPerGWhEur: EnergyCostsStore.DEFAULT_H2_BATTERY_CAPEX_PER_GWH_EUR,
+      batteryOpexPerGWhEur: EnergyCostsStore.DEFAULT_H2_BATTERY_OPEX_PER_GWH_EUR,
+      batteryLifetimeYears: EnergyCostsStore.DEFAULT_H2_BATTERY_LIFETIME_YEARS,
+      batteryInterestRatePercent: EnergyCostsStore.DEFAULT_H2_BATTERY_INTEREST_RATE_PERCENT,
     });
   }
 
@@ -1034,6 +1087,10 @@ export class EnergyCostsStore {
         electrolyzerOpexPerGWEur: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_OPEX_PER_GW_EUR,
         electrolyzerLifetimeYears: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_LIFETIME_YEARS,
         electrolyzerInterestRatePercent: EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_INTEREST_RATE_PERCENT,
+        batteryCapexPerGWhEur: EnergyCostsStore.DEFAULT_H2_BATTERY_CAPEX_PER_GWH_EUR,
+        batteryOpexPerGWhEur: EnergyCostsStore.DEFAULT_H2_BATTERY_OPEX_PER_GWH_EUR,
+        batteryLifetimeYears: EnergyCostsStore.DEFAULT_H2_BATTERY_LIFETIME_YEARS,
+        batteryInterestRatePercent: EnergyCostsStore.DEFAULT_H2_BATTERY_INTEREST_RATE_PERCENT,
       };
     }
 
@@ -1047,6 +1104,10 @@ export class EnergyCostsStore {
       electrolyzerOpexPerGWEur: parseStoredNumber(stored.electrolyzerOpexPerGWEur, EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_OPEX_PER_GW_EUR),
       electrolyzerLifetimeYears: parseStoredNumber(stored.electrolyzerLifetimeYears, EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_LIFETIME_YEARS),
       electrolyzerInterestRatePercent: parseStoredNumber(stored.electrolyzerInterestRatePercent, EnergyCostsStore.DEFAULT_H2_ELECTROLYZER_INTEREST_RATE_PERCENT),
+      batteryCapexPerGWhEur: parseStoredNumber(stored.batteryCapexPerGWhEur, EnergyCostsStore.DEFAULT_H2_BATTERY_CAPEX_PER_GWH_EUR),
+      batteryOpexPerGWhEur: parseStoredNumber(stored.batteryOpexPerGWhEur, EnergyCostsStore.DEFAULT_H2_BATTERY_OPEX_PER_GWH_EUR),
+      batteryLifetimeYears: parseStoredNumber(stored.batteryLifetimeYears, EnergyCostsStore.DEFAULT_H2_BATTERY_LIFETIME_YEARS),
+      batteryInterestRatePercent: parseStoredNumber(stored.batteryInterestRatePercent, EnergyCostsStore.DEFAULT_H2_BATTERY_INTEREST_RATE_PERCENT),
     };
   }
 

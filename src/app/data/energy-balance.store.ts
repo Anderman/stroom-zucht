@@ -9,7 +9,8 @@ import {
     WINDLAND_BASELINE_CAPACITY_GW_2025,
     WINDLAND_DEFAULT_FULL_LOAD_HOURS_2025,
     WINDZEE_BASELINE_CAPACITY_GW_2025,
-    WINDZEE_DEFAULT_FULL_LOAD_HOURS_2025
+    WINDZEE_DEFAULT_FULL_LOAD_HOURS_2025,
+    HYDROGEN_DEDICATED_OFFSHORE_WIND_DEFAULT_FULL_LOAD_HOURS,
 } from './energy-dashboard.config';
 import {
     PersistedBalanceSettings,
@@ -56,6 +57,8 @@ export class EnergyBalanceStore {
   readonly solarFullLoadHours = signal(SOLAR_DEFAULT_FULL_LOAD_HOURS_2025);
   readonly windlandFullLoadHours = signal(WINDLAND_DEFAULT_FULL_LOAD_HOURS_2025);
   readonly windzeeFullLoadHours = signal(WINDZEE_DEFAULT_FULL_LOAD_HOURS_2025);
+  readonly hydrogenDedicatedOffshoreWindFullLoadHours = signal(HYDROGEN_DEDICATED_OFFSHORE_WIND_DEFAULT_FULL_LOAD_HOURS);
+  readonly hydrogenBatteryCapacityGWh = signal(0);
   readonly nuclearCapacityGW = signal(NUCLEAR_DEFAULT_CAPACITY_GW);
   readonly nuclearFullLoadHours = signal(NUCLEAR_DEFAULT_FULL_LOAD_HOURS);
 
@@ -95,9 +98,11 @@ export class EnergyBalanceStore {
     nuclearFullLoadHours: NUCLEAR_DEFAULT_FULL_LOAD_HOURS,
     hydrogenOutputTargetTWh: EnergyBalanceStore.HYDROGEN_SCENARIO_TARGET_TWH,
     hydrogenDedicatedOffshoreWindCapacityGW: 35,
+    hydrogenDedicatedOffshoreWindFullLoadHours: 5_000,
     hydrogenElectrolyzerCapacityGW: 35,
     hydrogenGridImportLimitGW: 35,
     hydrogenGridExportLimitGW: 0,
+    hydrogenBatteryCapacityGWh: 0,
   };
 
   private static readonly SCENARIO_ONLY_NUCLEAR_HYDROGEN = {
@@ -114,9 +119,11 @@ export class EnergyBalanceStore {
     nuclearFullLoadHours: NUCLEAR_DEFAULT_FULL_LOAD_HOURS,
     hydrogenOutputTargetTWh: EnergyBalanceStore.HYDROGEN_SCENARIO_TARGET_TWH,
     hydrogenDedicatedOffshoreWindCapacityGW: 35,
+    hydrogenDedicatedOffshoreWindFullLoadHours: HYDROGEN_DEDICATED_OFFSHORE_WIND_DEFAULT_FULL_LOAD_HOURS,
     hydrogenElectrolyzerCapacityGW: 35,
     hydrogenGridImportLimitGW: 35,
     hydrogenGridExportLimitGW: 0,
+    hydrogenBatteryCapacityGWh: 0,
   };
 
   readonly hydrogenProductionTargetTWh = computed(() => {
@@ -191,6 +198,8 @@ export class EnergyBalanceStore {
         windlandFullLoadHours: this.windlandFullLoadHours(),
         windzeeCapacityGW: this.windzeeCapacityGW(),
         windzeeFullLoadHours: this.windzeeFullLoadHours(),
+        hydrogenDedicatedOffshoreWindFullLoadHours: this.hydrogenDedicatedOffshoreWindFullLoadHours(),
+        hydrogenBatteryCapacityGWh: this.hydrogenBatteryCapacityGWh(),
         nuclearCapacityGW: this.nuclearCapacityGW(),
         nuclearFullLoadHours: this.nuclearFullLoadHours(),
       });
@@ -282,6 +291,14 @@ export class EnergyBalanceStore {
     this.windzeeFullLoadHours.set(this.parseNonNegativeNumber(value, WINDZEE_DEFAULT_FULL_LOAD_HOURS_2025));
   }
 
+  setHydrogenDedicatedOffshoreWindFullLoadHours(value: string): void {
+    this.hydrogenDedicatedOffshoreWindFullLoadHours.set(this.parseNonNegativeNumber(value, HYDROGEN_DEDICATED_OFFSHORE_WIND_DEFAULT_FULL_LOAD_HOURS));
+  }
+
+  setHydrogenBatteryCapacityGWh(value: string): void {
+    this.hydrogenBatteryCapacityGWh.set(this.parseNonNegativeNumber(value, 0));
+  }
+
   setNuclearCapacityGW(value: string): void {
     this.nuclearCapacityGW.set(this.parseNonNegativeNumber(value, NUCLEAR_DEFAULT_CAPACITY_GW));
   }
@@ -304,6 +321,8 @@ export class EnergyBalanceStore {
     this.windlandFullLoadHours.set(WINDLAND_DEFAULT_FULL_LOAD_HOURS_2025);
     this.windzeeCapacityGW.set(WINDZEE_BASELINE_CAPACITY_GW_2025);
     this.windzeeFullLoadHours.set(WINDZEE_DEFAULT_FULL_LOAD_HOURS_2025);
+    this.hydrogenDedicatedOffshoreWindFullLoadHours.set(HYDROGEN_DEDICATED_OFFSHORE_WIND_DEFAULT_FULL_LOAD_HOURS);
+    this.hydrogenBatteryCapacityGWh.set(0);
     this.nuclearCapacityGW.set(NUCLEAR_DEFAULT_CAPACITY_GW);
     this.nuclearFullLoadHours.set(NUCLEAR_DEFAULT_FULL_LOAD_HOURS);
   }
@@ -316,6 +335,7 @@ export class EnergyBalanceStore {
     this.hydrogenElectrolyzerCapacityGW.set(EnergyBalanceStore.DEFAULT_HYDROGEN_ELECTROLYZER_CAPACITY_GW);
     this.hydrogenGridImportLimitGW.set(EnergyBalanceStore.DEFAULT_HYDROGEN_GRID_IMPORT_LIMIT_GW);
     this.hydrogenGridExportLimitGW.set(EnergyBalanceStore.DEFAULT_HYDROGEN_GRID_EXPORT_LIMIT_GW);
+    this.hydrogenBatteryCapacityGWh.set(0);
     this.privateDemandShare.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY.privateDemandShare);
     this.solarCapacityGW.set(EnergyBalanceStore.SOLAR_PUBLIC_SCENARIO_CAPACITY_GW);
     this.privateSolarCapacityGW.set(EnergyBalanceStore.SOLAR_PRIVATE_SCENARIO_CAPACITY_GW);
@@ -334,6 +354,7 @@ export class EnergyBalanceStore {
     this.hydrogenElectrolyzerCapacityGW.set(EnergyBalanceStore.DEFAULT_HYDROGEN_ELECTROLYZER_CAPACITY_GW);
     this.hydrogenGridImportLimitGW.set(EnergyBalanceStore.DEFAULT_HYDROGEN_GRID_IMPORT_LIMIT_GW);
     this.hydrogenGridExportLimitGW.set(EnergyBalanceStore.DEFAULT_HYDROGEN_GRID_EXPORT_LIMIT_GW);
+    this.hydrogenBatteryCapacityGWh.set(0);
     this.privateDemandShare.set(EnergyBalanceStore.SCENARIO_WIND_NUCLEAR.privateDemandShare);
     this.solarCapacityGW.set(EnergyBalanceStore.SOLAR_PUBLIC_SCENARIO_CAPACITY_GW);
     this.privateSolarCapacityGW.set(EnergyBalanceStore.SOLAR_PRIVATE_SCENARIO_CAPACITY_GW);
@@ -350,9 +371,11 @@ export class EnergyBalanceStore {
     this.privateBatteryCapacityGWh.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.privateBatteryCapacityGWh);
     this.hydrogenOutputTargetTWh.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenOutputTargetTWh);
     this.hydrogenDedicatedOffshoreWindCapacityGW.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenDedicatedOffshoreWindCapacityGW);
+    this.hydrogenDedicatedOffshoreWindFullLoadHours.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenDedicatedOffshoreWindFullLoadHours);
     this.hydrogenElectrolyzerCapacityGW.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenElectrolyzerCapacityGW);
     this.hydrogenGridImportLimitGW.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenGridImportLimitGW);
     this.hydrogenGridExportLimitGW.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenGridExportLimitGW);
+    this.hydrogenBatteryCapacityGWh.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.hydrogenBatteryCapacityGWh);
     this.privateDemandShare.set(EnergyBalanceStore.SCENARIO_LARGE_BATTERY_HYDROGEN.privateDemandShare);
     this.solarCapacityGW.set(EnergyBalanceStore.SOLAR_PUBLIC_SCENARIO_CAPACITY_GW);
     this.privateSolarCapacityGW.set(EnergyBalanceStore.SOLAR_PRIVATE_SCENARIO_CAPACITY_GW);
@@ -369,9 +392,11 @@ export class EnergyBalanceStore {
     this.privateBatteryCapacityGWh.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.privateBatteryCapacityGWh);
     this.hydrogenOutputTargetTWh.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenOutputTargetTWh);
     this.hydrogenDedicatedOffshoreWindCapacityGW.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenDedicatedOffshoreWindCapacityGW);
+    this.hydrogenDedicatedOffshoreWindFullLoadHours.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenDedicatedOffshoreWindFullLoadHours);
     this.hydrogenElectrolyzerCapacityGW.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenElectrolyzerCapacityGW);
     this.hydrogenGridImportLimitGW.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenGridImportLimitGW);
     this.hydrogenGridExportLimitGW.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenGridExportLimitGW);
+    this.hydrogenBatteryCapacityGWh.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.hydrogenBatteryCapacityGWh);
     this.privateDemandShare.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.privateDemandShare);
     this.solarCapacityGW.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.solarCapacityGW);
     this.privateSolarCapacityGW.set(EnergyBalanceStore.SCENARIO_ONLY_NUCLEAR_HYDROGEN.privateSolarCapacityGW);
@@ -431,6 +456,8 @@ export class EnergyBalanceStore {
     this.windlandFullLoadHours.set(parseStoredNumber(parsed.windlandFullLoadHours, WINDLAND_DEFAULT_FULL_LOAD_HOURS_2025));
     this.windzeeCapacityGW.set(parseStoredNumber(parsed.windzeeCapacityGW, WINDZEE_BASELINE_CAPACITY_GW_2025));
     this.windzeeFullLoadHours.set(parseStoredNumber(parsed.windzeeFullLoadHours, WINDZEE_DEFAULT_FULL_LOAD_HOURS_2025));
+    this.hydrogenDedicatedOffshoreWindFullLoadHours.set(parseStoredNumber(parsed.hydrogenDedicatedOffshoreWindFullLoadHours, HYDROGEN_DEDICATED_OFFSHORE_WIND_DEFAULT_FULL_LOAD_HOURS));
+    this.hydrogenBatteryCapacityGWh.set(parseStoredNumber(parsed.hydrogenBatteryCapacityGWh, 0));
     this.nuclearCapacityGW.set(parseStoredNumber(parsed.nuclearCapacityGW, NUCLEAR_DEFAULT_CAPACITY_GW));
     this.nuclearFullLoadHours.set(parseStoredNumber(parsed.nuclearFullLoadHours, NUCLEAR_DEFAULT_FULL_LOAD_HOURS));
   }

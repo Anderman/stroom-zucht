@@ -176,7 +176,7 @@ export class EnergyDashboardStore {
     return this.dataStore.scaleProfileToAnnualTarget(this.dataStore.valuesByDataset().windzee ?? [], targetAnnualKWh);
   });
   readonly hydrogenDedicatedOffshoreWindValues = computed(() => {
-    const targetAnnualKWh = this.balanceStore.hydrogenDedicatedOffshoreWindCapacityGW() * this.balanceStore.windzeeFullLoadHours() * 1_000_000;
+    const targetAnnualKWh = this.balanceStore.hydrogenDedicatedOffshoreWindCapacityGW() * this.balanceStore.hydrogenDedicatedOffshoreWindFullLoadHours() * 1_000_000;
     return this.dataStore.scaleProfileToAnnualTarget(this.dataStore.valuesByDataset().windzee ?? [], targetAnnualKWh);
   });
   readonly nuclearValues = computed(() => {
@@ -257,33 +257,56 @@ export class EnergyDashboardStore {
     const gridImportLimitKWh = this.balanceStore.hydrogenGridImportLimitGW() > 0
       ? this.balanceStore.hydrogenGridImportLimitGW() * 1_000_000
       : Infinity;
+    const batteryCapacityKWh = this.balanceStore.hydrogenBatteryCapacityGWh() * 1_000_000;
     const dedicatedWindValues = this.hydrogenDedicatedOffshoreWindValues();
     const gridSurplusValues = this.balanceModel().publicCurtailmentBeforeHydrogenValues;
 
     let remainingInputTargetKWh = targetInputKWh;
+    let batterySoC = 0;
     let totalProducedOutputKWh = 0;
     let totalDedicatedWindInputKWh = 0;
+    let totalDedicatedWindToBatteryKWh = 0;
+    let totalBatteryToElectrolyserKWh = 0;
     let totalGridInputKWh = 0;
     let totalSurplusKWh = 0;
 
     for (let index = 0; index < gridSurplusValues.length; index += 1) {
       const dedicatedAvailable = dedicatedWindValues[index] ?? 0;
       const gridAvailable = Math.max(0, gridSurplusValues[index] ?? 0);
-      const dedicatedUsedKWh = Math.min(dedicatedAvailable, electrolyzerCapacityKWh, remainingInputTargetKWh);
+
+      let directWindUse = Math.min(dedicatedAvailable, electrolyzerCapacityKWh, remainingInputTargetKWh);
+      const windToElectrolyser = directWindUse;
+
+      let chargeKWh = 0;
+      if (dedicatedAvailable > directWindUse && batteryCapacityKWh > 0) {
+        chargeKWh = Math.min(dedicatedAvailable - directWindUse, batteryCapacityKWh - batterySoC);
+        batterySoC += chargeKWh;
+        totalDedicatedWindToBatteryKWh += chargeKWh;
+      }
+
+      if (directWindUse < electrolyzerCapacityKWh && remainingInputTargetKWh > directWindUse && batterySoC > 0) {
+        const batteryGap = Math.min(electrolyzerCapacityKWh - directWindUse, remainingInputTargetKWh - directWindUse);
+        const dischargeKWh = Math.min(batteryGap, batterySoC);
+        batterySoC -= dischargeKWh;
+        totalBatteryToElectrolyserKWh += dischargeKWh;
+        directWindUse += dischargeKWh;
+      }
+
       const gridUsedKWh = Math.min(
         gridAvailable,
-        Math.max(0, electrolyzerCapacityKWh - dedicatedUsedKWh),
+        Math.max(0, electrolyzerCapacityKWh - directWindUse),
         gridImportLimitKWh,
-        Math.max(0, remainingInputTargetKWh - dedicatedUsedKWh),
+        Math.max(0, remainingInputTargetKWh - directWindUse),
       );
-      const inputUsedKWh = dedicatedUsedKWh + gridUsedKWh;
+      const inputUsedKWh = directWindUse + gridUsedKWh;
       const outputProducedKWh = inputUsedKWh * efficiencyFraction;
 
       remainingInputTargetKWh = Math.max(0, remainingInputTargetKWh - inputUsedKWh);
-      totalDedicatedWindInputKWh += dedicatedUsedKWh;
+      totalDedicatedWindInputKWh += windToElectrolyser;
       totalGridInputKWh += gridUsedKWh;
       totalProducedOutputKWh += outputProducedKWh;
-      totalSurplusKWh += Math.max(0, dedicatedAvailable + gridAvailable - inputUsedKWh);
+      totalSurplusKWh += Math.max(0, dedicatedAvailable - windToElectrolyser - chargeKWh)
+        + Math.max(0, gridAvailable - gridUsedKWh);
     }
 
     return {
@@ -291,11 +314,15 @@ export class EnergyDashboardStore {
       targetInputKWh,
       producedOutputKWh: totalProducedOutputKWh,
       dedicatedWindInputKWh: totalDedicatedWindInputKWh,
+      dedicatedWindToBatteryKWh: totalDedicatedWindToBatteryKWh,
+      batteryToElectrolyserKWh: totalBatteryToElectrolyserKWh,
       gridInputKWh: totalGridInputKWh,
       surplusKWh: totalSurplusKWh,
       shortageKWh: Math.max(0, targetOutputKWh - totalProducedOutputKWh),
       potentialGridExportKWh: totalSurplusKWh,
       actualGridExportKWh: 0,
+      batteryCapacityKWh,
+      batteryFinalSoCKWh: batterySoC,
     };
   });
   readonly privateSolarToPublicKWhTotal = computed(() =>

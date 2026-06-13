@@ -47,14 +47,14 @@
               <details class="border-b border-slate-100 dark:border-slate-800 py-2">
                 <summary class="cursor-pointer py-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ faq.question }}</summary>
                 <div class="pb-2">
-                  <p class="text-sm text-slate-700 dark:text-slate-300">{{ faq.shortAnswer }}</p>
+                  <p class="text-sm text-slate-700 dark:text-slate-300" [innerHTML]="renderText(faq.shortAnswer)"></p>
                   @if (faq.detailedAnswer) {
-                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ faq.detailedAnswer }}</p>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400" [innerHTML]="renderText(faq.detailedAnswer)"></p>
                   }
                   @if (faq.detailedBullets?.length) {
                     <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-500 dark:text-slate-400">
                       @for (point of faq.detailedBullets; track point) {
-                        <li>{{ point }}</li>
+                        <li [innerHTML]="renderText(point)"></li>
                       }
                     </ul>
                   }

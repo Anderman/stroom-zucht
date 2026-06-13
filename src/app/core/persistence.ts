@@ -11,6 +11,8 @@ export type PersistedBalanceSettings = {
   hydrogenOutputTargetTWh?: unknown;
   electrolyzerEfficiencyPercent?: unknown;
   hydrogenDedicatedOffshoreWindCapacityGW?: unknown;
+  hydrogenDedicatedOffshoreWindFullLoadHours?: unknown;
+  hydrogenBatteryCapacityGWh?: unknown;
   hydrogenElectrolyzerCapacityGW?: unknown;
   hydrogenGridImportLimitGW?: unknown;
   hydrogenGridExportLimitGW?: unknown;

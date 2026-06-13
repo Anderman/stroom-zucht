@@ -81,15 +81,10 @@ type SimulationResult = {
 
 @Injectable({ providedIn: 'root' })
 export class BalanceModelService {
-  private static readonly PRIVATE_EXPORT_LOOKAHEAD_HOURS = 24;
+  private static readonly PRIVATE_LOOKAHEAD_HOURS = 14 * 24;
+  private static readonly PRIVATE_SOC_BUFFER_SHARE = 0.2;
   private static readonly NUCLEAR_MIN_OUTPUT_SHARE = 0.5;
-  private static readonly WINTER_PRIVATE_RESERVE_SHARE = 0.5;
-  private static readonly SUMMER_PRIVATE_RESERVE_SHARE = 0.2;
   private static readonly PV_TO_HYDROGEN_MAX_GW = 35;
-  private static readonly AMSTERDAM_MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', {
-    month: 'numeric',
-    timeZone: 'Europe/Amsterdam',
-  });
 
   buildModel(input: BuildBalanceModelInput): BalanceModel {
     const adjustedPublicGenerationValues = input.publicSolarValues.map((value, index) =>
@@ -120,7 +115,7 @@ export class BalanceModelService {
       input.afvalBiogasValues,
       adjustedPrivateGenerationValues,
       input.demandValues,
-      publicBatteryCapacity, privateBatteryCapacity, initialPublic, initialPrivate, pubChargeMaxKWh, privGridMaxKWh, input.privateDemandShare, input.hydrogenProductionTargetTWh, input.timestamps,
+      publicBatteryCapacity, privateBatteryCapacity, initialPublic, initialPrivate, pubChargeMaxKWh, privGridMaxKWh, input.privateDemandShare, input.hydrogenProductionTargetTWh,
       input.hydrogenElectrolyzerCapacityGW,
     );
 
@@ -140,7 +135,7 @@ export class BalanceModelService {
         input.afvalBiogasValues,
         adjustedPrivateGenerationValues,
         input.demandValues,
-        publicBatteryCapacity, privateBatteryCapacity, initialPublic, initialPrivate, pubChargeMaxKWh, privGridMaxKWh, input.privateDemandShare, input.hydrogenProductionTargetTWh, input.timestamps,
+        publicBatteryCapacity, privateBatteryCapacity, initialPublic, initialPrivate, pubChargeMaxKWh, privGridMaxKWh, input.privateDemandShare, input.hydrogenProductionTargetTWh,
         input.hydrogenElectrolyzerCapacityGW,
       );
     }
@@ -189,7 +184,6 @@ export class BalanceModelService {
     privGridMaxKWh: number,
     privateDemandShare: number,
     hydrogenProductionTargetTWh: number,
-    timestamps?: number[],
     hydrogenElectrolyzerCapacityGW = 0,
   ): SimulationResult {
     let pubSoC = Math.max(0, Math.min(initialPubSoC, pubCap));
@@ -213,6 +207,18 @@ export class BalanceModelService {
     const privateSelfServedValues: number[] = [];
     const hydrogenElectrolyzerCapacityKWh = hydrogenElectrolyzerCapacityGW > 0 ? hydrogenElectrolyzerCapacityGW * 1_000_000 : 0;
     const hydrogenRoutingEnabled = hydrogenProductionTargetTWh > 0 && hydrogenElectrolyzerCapacityKWh > 0;
+    const requiredPrivateSoCByHour = this.computeRequiredPrivateSoCByHour({
+      publicSolarValues,
+      windlandValues,
+      windzeeValues,
+      nuclearValues,
+      afvalBiogasValues,
+      privateGenValues,
+      demandValues,
+      privateDemandShare,
+      privateCapacity: privCap,
+      privateGridMaxKWh: privGridMaxKWh,
+    });
 
     const n = demandValues.length;
     for (let h = 0; h < n; h += 1) {
@@ -241,14 +247,17 @@ export class BalanceModelService {
       let curtailAfvalBiogas = 0;
       let hydrogenToFactories = 0;
 
-      const privateReserveTarget = this.getPrivateReserveTarget(h, privCap, timestamps, n);
+      const privateReserveTarget = Math.max(
+        privCap * BalanceModelService.PRIVATE_SOC_BUFFER_SHARE,
+        requiredPrivateSoCByHour[h] ?? 0,
+      );
       let privateGridHeadroom = privGridMaxKWh;
 
       // Private gebruikt eerst eigen opwek voor eigen vraag.
       let privateDemandRemaining = Math.max(0, privateDemand - privateGen);
       let privateSurplus = Math.max(0, privateGen - privateDemand);
 
-      // Daarna ontlaadt private batterij alleen boven het seizoensminimum.
+      // Bij tekort gebruikt private batterij eerst eigen opslag boven de 20%-buffer.
       const privateDischargeAvailable = Math.max(0, privSoC - privateReserveTarget);
       const privateDischarge = Math.min(privateDemandRemaining, privateDischargeAvailable);
       privSoC -= privateDischarge;
@@ -259,7 +268,7 @@ export class BalanceModelService {
       privateGridHeadroom -= privateImportFromPublic;
       privateDemandRemaining -= privateImportFromPublic;
 
-      // Noodfallback: bij system shortage mag reserve worden aangesproken voor private vraag.
+      // Noodfallback: als er ondanks netimport nog private vraag openstaat, mag buffer worden aangesproken.
       if (privateDemandRemaining > 0) {
         const emergencyPrivateDischarge = Math.min(privateDemandRemaining, privSoC);
         privSoC -= emergencyPrivateDischarge;
@@ -273,18 +282,8 @@ export class BalanceModelService {
       privSoC += privChargePriv;
       privateSurplus -= privChargePriv;
 
-      // 24u-vooruitkijk: verkoop alleen wat we met zekerheid missen binnen de horizon.
-      const privateExportReserve = privCap > 0
-        ? this.forecastPrivateExportReserve(
-          h,
-          privateGenValues,
-          demandValues,
-          privateDemandShare,
-        )
-        : 0;
-      const privateExportAllowedByReserve = Math.max(0, privSoC + privateSurplus - privateExportReserve);
-      const privateExportPotential = Math.min(privateSurplus, privateExportAllowedByReserve);
-      const privateUnsoldSurplus = Math.max(0, privateSurplus - privateExportPotential);
+      const privateExportPotential = privateSurplus;
+      const privateUnsoldSurplus = 0;
 
       const publicDemandTotal = publicDemand + privateImportFromPublic;
 
@@ -297,7 +296,7 @@ export class BalanceModelService {
         pubSoC += pubChargePub;
         let surplusAfterStorage = publicNet - pubChargePub;
 
-        // Publiek overschot kan private batterij bijvullen tot reserve (niet per se vol), binnen private netheadroom.
+        // Publiek overschot kan private batterij bijvullen richting 14-daagse benodigde SoC.
         const reserveGap = Math.max(0, privateReserveTarget - privSoC);
         pubToPrivateFlow = Math.min(surplusAfterStorage, reserveGap, privateGridHeadroom);
         if (pubToPrivateFlow > 0) {
@@ -361,6 +360,8 @@ export class BalanceModelService {
         publicCurtailmentBeforeHydrogenValues.push(publicCurtailmentBeforeHydrogen);
       } else {
         const publicDeficit = -publicNet;
+        // In noodsituatie (publiek tekort) mag private batterij volledig worden aangesproken,
+        // ongeacht de zachte 20%-buffer. De buffer geldt alleen voor normale ontlading.
         const privEmergencyToPublic = Math.min(publicDeficit, privSoC);
         privSoC -= privEmergencyToPublic;
 
@@ -419,36 +420,58 @@ export class BalanceModelService {
     };
   }
 
-  private getPrivateReserveTarget(hourIndex: number, privateCapacity: number, timestamps: number[] | undefined, totalHours: number): number {
-    if (privateCapacity <= 0) {
-      return 0;
+  private computeRequiredPrivateSoCByHour(input: {
+    publicSolarValues: number[];
+    windlandValues: number[];
+    windzeeValues: number[];
+    nuclearValues: number[];
+    afvalBiogasValues: number[];
+    privateGenValues: number[];
+    demandValues: number[];
+    privateDemandShare: number;
+    privateCapacity: number;
+    privateGridMaxKWh: number;
+  }): number[] {
+    const n = input.demandValues.length;
+    const requiredSoC = new Array<number>(n).fill(0);
+
+    if (input.privateCapacity <= 0) {
+      return requiredSoC;
     }
 
-    const month = this.resolveMonth(hourIndex, timestamps, totalHours);
-    const reserveShare = this.getSeasonalReserveShare(month);
-    return privateCapacity * reserveShare;
-  }
+    for (let h = 0; h < n; h += 1) {
+      const horizonEndExclusive = Math.min(n, h + BalanceModelService.PRIVATE_LOOKAHEAD_HOURS + 1);
+      let runningNeed = 0;
 
-  private resolveMonth(hourIndex: number, timestamps: number[] | undefined, totalHours: number): number {
-    const timestamp = timestamps?.[hourIndex];
-    if (typeof timestamp === 'number' && Number.isFinite(timestamp)) {
-      const monthText = BalanceModelService.AMSTERDAM_MONTH_FORMATTER.format(timestamp);
-      const month = Number.parseInt(monthText, 10);
-      if (Number.isFinite(month) && month >= 1 && month <= 12) {
-        return month;
+      // Achterwaarts: tekorten opbouwen, overschot-uren gebruiken om behoefte zo laat mogelijk te dekken.
+      for (let futureIndex = horizonEndExclusive - 1; futureIndex > h; futureIndex -= 1) {
+        const demand = input.demandValues[futureIndex] ?? 0;
+        const privateDemand = demand * input.privateDemandShare;
+        const publicDemand = demand - privateDemand;
+
+        const privateGen = input.privateGenValues[futureIndex] ?? 0;
+        const privateDeficit = Math.max(0, privateDemand - privateGen);
+        const privateSurplus = Math.max(0, privateGen - privateDemand);
+
+        const publicGen =
+          (input.publicSolarValues[futureIndex] ?? 0)
+          + (input.windlandValues[futureIndex] ?? 0)
+          + (input.windzeeValues[futureIndex] ?? 0)
+          + (input.nuclearValues[futureIndex] ?? 0)
+          + (input.afvalBiogasValues[futureIndex] ?? 0);
+        const publicSurplus = Math.max(0, publicGen - publicDemand);
+        const publicChargeOpportunity = Math.min(publicSurplus, input.privateGridMaxKWh);
+        const chargeOpportunity = privateSurplus + publicChargeOpportunity;
+
+        runningNeed += privateDeficit;
+        runningNeed = Math.max(0, runningNeed - chargeOpportunity);
+        runningNeed = Math.min(input.privateCapacity, runningNeed);
       }
+
+      requiredSoC[h] = runningNeed;
     }
 
-    // Fallback zonder timestamps: veronderstel reeks die start op 1 januari.
-    const inferredYear = totalHours >= 8784 ? 2024 : 2025;
-    return new Date(Date.UTC(inferredYear, 0, 1, hourIndex)).getUTCMonth() + 1;
-  }
-
-  private getSeasonalReserveShare(month: number): number {
-    const isWinterMonth = month >= 10 || month <= 2;
-    return isWinterMonth
-      ? BalanceModelService.WINTER_PRIVATE_RESERVE_SHARE
-      : BalanceModelService.SUMMER_PRIVATE_RESERVE_SHARE;
+    return requiredSoC;
   }
 
   private applyPublicCurtailmentPriority(
@@ -504,27 +527,6 @@ export class BalanceModelService {
       curtailNuclear,
       curtailAfvalBiogas,
     };
-  }
-
-  private forecastPrivateExportReserve(
-    hourIndex: number,
-    privateGenValues: number[],
-    demandValues: number[],
-    privateDemandShare: number,
-  ): number {
-    let cumulativeNet = 0;
-    let minCumulativeNet = 0;
-    const horizonEnd = Math.min(privateGenValues.length, hourIndex + BalanceModelService.PRIVATE_EXPORT_LOOKAHEAD_HOURS + 1);
-
-    for (let futureIndex = hourIndex + 1; futureIndex < horizonEnd; futureIndex += 1) {
-      const futurePrivateGen = privateGenValues[futureIndex] ?? 0;
-      const futureDemand = demandValues[futureIndex] ?? 0;
-      const futurePrivateDemand = futureDemand * privateDemandShare;
-      cumulativeNet += futurePrivateGen - futurePrivateDemand;
-      minCumulativeNet = Math.min(minCumulativeNet, cumulativeNet);
-    }
-
-    return Math.max(0, -minCumulativeNet);
   }
 
   private routeCurtailmentToHydrogen(input: {

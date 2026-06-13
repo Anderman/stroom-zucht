@@ -90,24 +90,24 @@
       </summary>
       <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
         <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
-          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Bruto balans</span>
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Jaarbalans</span>
           <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.balanceGrossDifferenceTWhText() }}</strong>
-          <span class="text-xs text-slate-500 dark:text-slate-400">Opwek - vraag, zonder publiek/privaat</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400" title="Netto resultaat: totale opwek minus vraag (overschot-uren minus tekort-uren)">Opwek − vraag (netto)</span>
         </div>
         <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
-          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Netto balans</span>
-          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.totalValueText() }}</strong>
-          <span class="text-xs text-slate-500 dark:text-slate-400">Na opslag en dispatch</span>
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Overschot totaal</span>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ presentationStore.totalCurtailmentTWhText() }}</strong>
+          <span class="text-xs text-slate-500 dark:text-slate-400" title="Som van alle overschot-uren (publiek + privé curtailment)">Publiek + privé curtailment</span>
         </div>
         <div class="border-t border-emerald-200 pt-4 dark:border-emerald-800">
-          <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Publiek overschot</span>
+          <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Publiek aandeel</span>
           <strong class="mt-1 block text-3xl font-semibold text-emerald-700 dark:text-emerald-300">{{ presentationStore.curtailmentTWhText() }}</strong>
-          <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70">Na batterijopslag</span>
+          <span class="text-xs text-emerald-600/70 dark:text-emerald-400/70" title="Publieke bronnen (wind, zon, kern) die nergens heen konden in overschot-uren">{{ scenarioStore.totalBatteryCapacityGWh() > 0 ? 'Na batterij' : 'Gecurtailed' }}</span>
         </div>
         <div class="border-t border-amber-200 pt-4 dark:border-amber-800">
-          <span class="text-xs font-medium text-amber-600 dark:text-amber-400">Privé overschot</span>
+          <span class="text-xs font-medium text-amber-600 dark:text-amber-400">Privé aandeel</span>
           <strong class="mt-1 block text-3xl font-semibold text-amber-700 dark:text-amber-300">{{ presentationStore.privateCurtailmentTWhText() }}</strong>
-          <span class="text-xs text-amber-600/70 dark:text-amber-400/70">Nadat batterijen vol zijn</span>
+          <span class="text-xs text-amber-600/70 dark:text-amber-400/70" title="Private zon die niet geëxporteerd kon worden omdat publiek al vol zat">{{ scenarioStore.totalBatteryCapacityGWh() > 0 ? 'Nadat batterij vol' : 'Gecurtailed' }}</span>
         </div>
         <div class="border-t border-slate-200 pt-4 dark:border-slate-800">
           <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Overschoturen</span>

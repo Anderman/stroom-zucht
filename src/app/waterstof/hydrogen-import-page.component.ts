@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
 import { EnergyBalanceStore } from '../data/energy-balance.store';
 import { EnergyCostsStore } from '../grid-systeem/energy-costs.store';
@@ -18,6 +18,18 @@ export class HydrogenImportPageComponent {
   protected readonly hydrogenSystem = this.dashboardStore.hydrogenSystem;
   protected readonly h2CostSettings = this.costsStore.hydrogenSystemCostSettings;
   protected readonly h2CostSummary = this.costsStore.hydrogenSystemCostSummary;
+
+  protected readonly isCbsDialogOpen = signal(false);
+  protected readonly cbsWaterstofImageUrl = 'Waterstof.png';
+  protected readonly cbsWaterstofSourceUrl = 'https://opendata.cbs.nl/statline/#/CBS/nl/';
+
+  protected openCbsDialog(): void {
+    this.isCbsDialogOpen.set(true);
+  }
+
+  protected closeCbsDialog(): void {
+    this.isCbsDialogOpen.set(false);
+  }
 
   protected readonly targetOutputText = computed(() => {
     return `${this.formatNumber(this.balanceStore.hydrogenOutputTargetTWh(), 1)} TWh/jaar`;
@@ -71,8 +83,30 @@ export class HydrogenImportPageComponent {
     return `${this.formatNumber(this.hydrogenSystem().gridInputKWh / 1_000_000_000, 1)} TWh/jaar uit grid-overschot`;
   });
 
+  protected readonly windToBatteryText = computed(() => {
+    return `${this.formatNumber(this.hydrogenSystem().dedicatedWindToBatteryKWh / 1_000_000_000, 1)} TWh/jaar naar opslag`;
+  });
+
+  protected readonly batteryToElectrolyserText = computed(() => {
+    return `${this.formatNumber(this.hydrogenSystem().batteryToElectrolyserKWh / 1_000_000_000, 1)} TWh/jaar uit opslag`;
+  });
+
+  protected readonly batteryCapacityText = computed(() => {
+    return `${this.formatNumber(this.balanceStore.hydrogenBatteryCapacityGWh() / 1_000, 1)} TWh`;
+  });
+
+  protected readonly batteryFinalSoCText = computed(() => {
+    return `${this.formatNumber(this.hydrogenSystem().batteryFinalSoCKWh / 1_000_000_000, 1)} TWh`;
+  });
+
   protected readonly dedicatedWindInputText = computed(() => {
-    return `${this.formatNumber(this.hydrogenSystem().dedicatedWindInputKWh / 1_000_000_000, 1)} TWh/jaar dedicated wind`;
+    const system = this.hydrogenSystem();
+    const totalDirect = system.dedicatedWindInputKWh / 1_000_000_000;
+    const totalToBattery = system.dedicatedWindToBatteryKWh / 1_000_000_000;
+    if (totalToBattery > 0) {
+      return `${this.formatNumber(totalDirect + totalToBattery, 1)} TWh/jaar wind (${this.formatNumber(totalDirect, 1)} direct + ${this.formatNumber(totalToBattery, 1)} opslag)`;
+    }
+    return `${this.formatNumber(totalDirect, 1)} TWh/jaar direct`;
   });
 
   protected readonly gridExportPotentialText = computed(() => {
@@ -91,8 +125,15 @@ export class HydrogenImportPageComponent {
     return `${this.formatCurrency(this.h2CostSummary().totalAnnualCost / 1_000_000, 1)} mln/jaar`;
   });
 
+  private readonly HYDROGEN_KWH_PER_KG_LHV = 33.33;
+
   protected readonly h2CostPerKwhText = computed(() => {
     return `${this.formatCurrency(this.h2CostSummary().costPerProducedKWhEur, 3)} / kWh`;
+  });
+
+  protected readonly h2CostPerKgText = computed(() => {
+    const costPerKg = this.h2CostSummary().costPerProducedKWhEur * this.HYDROGEN_KWH_PER_KG_LHV;
+    return `${this.formatCurrency(costPerKg, 2)} / kg`;
   });
 
   protected readonly h2DedicatedWindAnnualCostText = computed(() => {
@@ -101,6 +142,10 @@ export class HydrogenImportPageComponent {
 
   protected readonly h2ElectrolyzerAnnualCostText = computed(() => {
     return `${this.formatCurrency(this.h2CostSummary().electrolyzerAnnualCost / 1_000_000, 1)} mln/jaar`;
+  });
+
+  protected readonly h2BatteryAnnualCostText = computed(() => {
+    return `${this.formatCurrency(this.h2CostSummary().batteryAnnualCost / 1_000_000, 1)} mln/jaar`;
   });
 
   protected readonly h2GridPurchaseAnnualCostText = computed(() => {
@@ -115,7 +160,7 @@ export class HydrogenImportPageComponent {
     }
 
     const maxInputPossible = capacityGW * 1_000_000 * 8760;
-    const totalInputUsed = system.dedicatedWindInputKWh + system.gridInputKWh;
+    const totalInputUsed = system.dedicatedWindInputKWh + system.batteryToElectrolyserKWh + system.gridInputKWh;
     const utilization = maxInputPossible > 0 ? (totalInputUsed / maxInputPossible) * 100 : 0;
 
     return `${this.formatNumber(utilization, 1)}% (${this.formatNumber(totalInputUsed / 1_000_000_000, 1)} van ${this.formatNumber(maxInputPossible / 1_000_000_000, 1)} TWh)`;

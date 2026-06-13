@@ -69,11 +69,15 @@ export type HydrogenSystemMetrics = {
   targetInputKWh: number;
   producedOutputKWh: number;
   dedicatedWindInputKWh: number;
+  dedicatedWindToBatteryKWh: number;
+  batteryToElectrolyserKWh: number;
   gridInputKWh: number;
   surplusKWh: number;
   shortageKWh: number;
   potentialGridExportKWh: number;
   actualGridExportKWh: number;
+  batteryCapacityKWh: number;
+  batteryFinalSoCKWh: number;
 };
 
 export type NuclearCfdSettings = {
