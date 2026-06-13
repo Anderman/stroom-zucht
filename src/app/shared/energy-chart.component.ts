@@ -1,28 +1,28 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  viewChild,
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    ElementRef,
+    computed,
+    effect,
+    inject,
+    input,
+    output,
+    viewChild,
 } from '@angular/core';
 import uPlot from 'uplot';
 
-import {
-  BATTERY_COLOR,
-  PRICE_COLOR,
-  PRICE_UNIT,
-  TEMPERATURE_COLOR,
-  TEMPERATURE_UNIT,
-  WEEKEND_SHADE,
-  SOC_UNIT,
-} from '../data/energy-dashboard.config';
-import { ChartXAxisMode, DatasetConfig, ChartSeries, HoverPosition, TimeRange, XWindow } from '../data/energy-dashboard.types';
 import { formatRankXAxisValue, formatXAxisValue, getRankXAxisSplits, getXAxisSplits } from '../data/chart-x-axis';
+import {
+    BATTERY_COLOR,
+    PRICE_COLOR,
+    PRICE_UNIT,
+    SOC_UNIT,
+    TEMPERATURE_COLOR,
+    TEMPERATURE_UNIT,
+    WEEKEND_SHADE,
+} from '../data/energy-dashboard.config';
+import { ChartSeries, ChartXAxisMode, DatasetConfig, HoverPosition, TimeRange, XWindow } from '../data/energy-dashboard.types';
 
 @Component({
   selector: 'app-energy-chart',
@@ -182,6 +182,47 @@ export class EnergyChartComponent {
 
             plot.over.addEventListener('wheel', onWheel, { passive: false });
             plot.over.addEventListener('dblclick', () => this.resetZoomRequested.emit());
+
+            // Touch-to-zoom: horizontale drag → zoom-selectie, verticaal → scrollen.
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchCurrentX = 0;
+            let touchDragging = false;
+
+            const onTouchStart = (e: TouchEvent) => {
+              if (e.touches.length !== 1) { return; }
+              touchStartX = e.touches[0].clientX;
+              touchStartY = e.touches[0].clientY;
+              touchCurrentX = touchStartX;
+              touchDragging = false;
+            };
+
+            const onTouchMove = (e: TouchEvent) => {
+              if (e.touches.length !== 1) { return; }
+              const dx = e.touches[0].clientX - touchStartX;
+              const dy = e.touches[0].clientY - touchStartY;
+              if (!touchDragging && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+                touchDragging = true;
+              }
+              if (touchDragging) {
+                touchCurrentX = e.touches[0].clientX;
+                e.preventDefault();
+              }
+            };
+
+            const onTouchEnd = () => {
+              if (!touchDragging) { return; }
+              touchDragging = false;
+              const rect = plot.over.getBoundingClientRect();
+              const startLeft = Math.max(0, touchStartX - rect.left);
+              const endLeft = Math.max(0, touchCurrentX - rect.left);
+              if (Math.abs(endLeft - startLeft) < 20) { return; }
+              this.applyTouchZoom(plot, startLeft, endLeft);
+            };
+
+            plot.over.addEventListener('touchstart', onTouchStart, { passive: true });
+            plot.over.addEventListener('touchmove', onTouchMove, { passive: false });
+            plot.over.addEventListener('touchend', onTouchEnd, { passive: true });
           }],
           setCursor: [plot => {
             const nextIndex = typeof plot.cursor.idx === 'number' ? plot.cursor.idx : null;
@@ -391,6 +432,26 @@ export class EnergyChartComponent {
       nextMax = fullXRange.max;
       nextMin = nextMax - nextSpan;
     }
+
+    this.applyChartXWindow({ min: nextMin, max: nextMax });
+  }
+
+  private applyTouchZoom(plot: uPlot, startLeft: number, endLeft: number): void {
+    const fullXRange = this.fullXRange();
+    if (!fullXRange) { return; }
+
+    const startVal = plot.posToVal(startLeft, 'x');
+    const endVal = plot.posToVal(endLeft, 'x');
+    if (!Number.isFinite(startVal) || !Number.isFinite(endVal)) { return; }
+
+    const minimumSpan = this.xAxisMode() === 'rank'
+      ? EnergyChartComponent.MIN_RANK_ZOOM_SPAN
+      : EnergyChartComponent.MIN_ZOOM_SPAN_MS;
+
+    const nextMin = Math.max(fullXRange.min, Math.min(startVal, endVal));
+    const nextMax = Math.min(fullXRange.max, Math.max(startVal, endVal));
+
+    if (nextMax - nextMin < minimumSpan) { return; }
 
     this.applyChartXWindow({ min: nextMin, max: nextMax });
   }
